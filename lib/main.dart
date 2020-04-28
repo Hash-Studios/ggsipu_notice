@@ -28,7 +28,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  String elements = "";
+  List<String> elements = [""];
   bool isData = false;
   final webScraper = WebScraper('http://www.ipu.ac.in');
 
@@ -37,7 +37,7 @@ class _MyHomePageState extends State<MyHomePage> {
       List<Map<String, dynamic>> data =
           webScraper.getElement('td > a', ['href']);
       for (int i = 0; i < data.length; i++) {
-        elements = data[i]['title'];
+        elements.add(data[i]['title']);
       }
       setState(() {
         isData = true;
@@ -64,7 +64,7 @@ class _MyHomePageState extends State<MyHomePage> {
             slivers: <Widget>[
               SliverFillRemaining(
                 child: Container(
-                  child: Text(elements),
+                  child: Text(elements.toString()),
                 ),
               ),
             ],
