@@ -2,6 +2,12 @@ from flask import Flask, render_template
 from bs4 import BeautifulSoup
 import requests
 from urllib import parse
+import pyrebase
+from config import config
+
+firebase = pyrebase.initialize_app(config)
+db = firebase.database()
+print("Initialised Pyrebase")
 
 
 def _scrap_notice_tr(tr):
@@ -28,16 +34,33 @@ def _scrap_notice_tr(tr):
 
 
 def only_new_notice_tr(tag):
-    return tag.name == 'tr'
+    return tag.name == 'tr' and not tag.has_attr('id') and not tag.has_attr('style')
 
 
 notices = []
 source = requests.get('http://www.ipu.ac.in/notices.php').text
 soup = BeautifulSoup(source, 'html.parser')
+print("Loaded Website")
 
 rows = soup.tbody.find_all(only_new_notice_tr)
 for links in rows:
     notice = _scrap_notice_tr(links)
     if notice:
         notices.append(notice)
-print(len(notices))
+print("Fetched Notices")
+
+notices_db = db.child("notices").get()
+if notices_db.val():
+    print("Database found")
+    if notices[0] == notices_db.val()[0]:
+        print("Data not Changed")
+    else:
+        print("Data Changed")
+        for index in range(len(notices)):
+            if notices[index] != notices_db.val()[index]:
+                db.child("notices").child(str(index)).set(notices[index])
+        print("Data Updated")
+else:
+    print("Database not found")
+    for index in range(len(notices)):
+        db.child("notices").child(str(index)).set(notices[index])
