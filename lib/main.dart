@@ -1,7 +1,9 @@
+import 'package:another/screens/webview.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() => runApp(MyApp());
 
@@ -17,7 +19,7 @@ class MyApp extends StatelessWidget {
         usedTheme: UsedTheme.LIGHT,
         theme: NeumorphicThemeData(
           baseColor: Color(0xFFDDDDDD),
-          accentColor: Color(0xFFCCCCCC),
+          accentColor: Color(0x00CCCCCC),
           defaultTextColor: Color(0xFF333333),
           shadowLightColor: Color(0xFFFFFFFF),
           shadowDarkColor: Color(0xFFAAAAAA),
@@ -26,11 +28,11 @@ class MyApp extends StatelessWidget {
           depth: 8,
         ),
         darkTheme: NeumorphicThemeData(
-          baseColor: Color(0xFF3E3E3E),
-          accentColor: Color(0xFF4F4F4F),
-          defaultTextColor: Color(0xFFEEEEEE),
-          shadowLightColor: Color(0xFF666666),
-          shadowDarkColor: Color(0xFF111111),
+          baseColor: Color(0xFF222222),
+          accentColor: Color(0x00111111),
+          defaultTextColor: Color(0xFFDDDDDD),
+          shadowLightColor: Color(0xFF444444),
+          shadowDarkColor: Color(0xFF000000),
           intensity: 0.6,
           lightSource: LightSource.topLeft,
           depth: 8,
@@ -55,11 +57,6 @@ class _MyHomePageState extends State<MyHomePage> {
   final databaseReference =
       FirebaseDatabase.instance.reference().child("notices");
   List lists = [];
-
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -97,6 +94,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     child: Neumorphic(
                       style: NeumorphicStyle(
                           shape: NeumorphicShape.flat, depth: 4),
+                      boxShape: NeumorphicBoxShape.roundRect(
+                          borderRadius: BorderRadius.circular(15)),
                       child: ListTile(
                           contentPadding: EdgeInsets.fromLTRB(20, 10, 5, 10),
                           leading: Container(
@@ -135,12 +134,17 @@ class _MyHomePageState extends State<MyHomePage> {
                           ),
                           trailing: NeumorphicButton(
                             style: NeumorphicStyle(
-                                shape: NeumorphicShape.flat, depth: -2),
+                                shape: NeumorphicShape.flat, depth: 2),
                             boxShape: NeumorphicBoxShape.circle(),
                             child: Icon(Icons.keyboard_arrow_right,
                                 color:
                                     NeumorphicTheme.defaultTextColor(context),
                                 size: 30.0),
+                            onClick: () {
+                              String link =
+                                  "http://www.ipu.ac.in${lists[index]["url"]}";
+                              _launchURL(link);
+                            },
                           )),
                     ),
                   );
@@ -155,6 +159,14 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
     );
+  }
+}
+
+_launchURL(String url) async {
+  if (await canLaunch(url)) {
+    await launch(url);
+  } else {
+    throw 'Could not launch $url';
   }
 }
 
@@ -173,3 +185,10 @@ class _MyHomePageState extends State<MyHomePage> {
 //             color: NeumorphicTheme.defaultTextColor(context),
 //           ),
 //         ),
+
+// Navigator.push(
+//                                 context,
+//                                 CupertinoPageRoute(builder: (context) {
+//                                   return WebPage(notice: lists[index]);
+//                                 }),
+//                               );
