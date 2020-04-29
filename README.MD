@@ -5,3 +5,6 @@ A simple project created using Flutter
 # To-Do
  - [ ] Add app icon
  - [ ] Add splash screen
+ - [ ] Refactor the app
+ - [ ] Push notification
+ - [ ] Settings page
