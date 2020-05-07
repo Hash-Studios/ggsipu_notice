@@ -58,19 +58,20 @@ def sensor():
             print("Data not Changed")
         else:
             print("Data Changed")
-            message_title = "New Notice Alert!!!"
-            message_body = "This is a pdf file"
-            result = push_service.notify_single_device(
-                registration_id=registration_id, message_title=message_title, message_body=message_body)
-            print(result)
-            # for index in range(len(notices)):
-            #     if notices[index] != notices_db.val()[index]:
-            #         db.child("notices").child(str(index)).set(notices[index])
+
+            for index in range(len(notices)):
+                if notices[index] != notices_db.val()[index]:
+                    message_title = str(notices[index]['title'])
+                    message_body = str(notices[index]['date'])
+                    result = push_service.notify_single_device(
+                        registration_id=registration_id, message_title=message_title, message_body=message_body)
+                    print(result)
+                    db.child("notices").child(str(index)).set(notices[index])
             print("Data Updated")
     else:
         print("Database not found")
-        # for index in range(len(notices)):
-        #     db.child("notices").child(str(index)).set(notices[index])
+        for index in range(len(notices)):
+            db.child("notices").child(str(index)).set(notices[index])
     print("Scheduler run completed!")
 
 
@@ -94,8 +95,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def home():
-    """ Function for test purposes. """
-    return "Welcome Home :) !"
+    return "Welcome, Services are running!"
 
 
 if __name__ == "__main__":
