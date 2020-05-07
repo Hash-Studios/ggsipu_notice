@@ -1,4 +1,4 @@
-import 'package:another/screens/webview.dart';
+import 'package:another/push_nofitications.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
@@ -10,6 +10,8 @@ void main() => runApp(MyApp());
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final push = PushNotificationsManager();
+    push.init();
     return CupertinoApp(
       title: 'GGSIPU Notices',
       theme: CupertinoThemeData(
@@ -125,7 +127,9 @@ class _MyHomePageState extends State<MyHomePage> {
                             decoration: new BoxDecoration(
                                 border: new Border(
                                     right: new BorderSide(
-                                        width: 1.0, color: Colors.white24))),
+                                        width: 1.0,
+                                        color: NeumorphicTheme.accentColor(
+                                            context)))),
                             child: Icon(Icons.picture_as_pdf,
                                 color: Colors.red[400], size: 30.0),
                           ),
