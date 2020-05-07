@@ -3,10 +3,10 @@
 # ggsipu_notice
 A simple project created using Flutter
 # To-Do
- - [ ] Add app icon
+ - [x] Add app icon
  - [ ] Add splash screen
  - [ ] Refactor the app
- - [ ] Push notification
+ - [x] Push notification
  - [x] Settings page
  - [ ] Pull to Refresh
- - [ ] About dev
+ - [x] About dev
