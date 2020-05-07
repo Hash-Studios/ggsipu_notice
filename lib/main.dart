@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
           // brightness: Brightness.light,
           ),
       home: NeumorphicTheme(
-        usedTheme: UsedTheme.LIGHT,
+        usedTheme: UsedTheme.SYSTEM,
         theme: NeumorphicThemeData(
           baseColor: Color(0xFFDDDDDD),
           accentColor: Color(0x00CCCCCC),
@@ -63,6 +63,28 @@ class _MyHomePageState extends State<MyHomePage> {
     return CupertinoPageScaffold(
       backgroundColor: NeumorphicTheme.baseColor(context),
       navigationBar: CupertinoNavigationBar(
+        trailing: Card(
+          elevation: 0,
+          color: Colors.transparent,
+          child: IconButton(
+            padding: EdgeInsets.only(bottom: 2),
+            highlightColor: Colors.transparent,
+            hoverColor: Colors.transparent,
+            splashColor: Colors.transparent,
+            onPressed: () {
+              NeumorphicTheme.of(context).usedTheme =
+                  NeumorphicTheme.isUsingDark(context)
+                      ? UsedTheme.LIGHT
+                      : UsedTheme.DARK;
+            },
+            icon: Icon(
+              NeumorphicTheme.isUsingDark(context)
+                  ? CupertinoIcons.brightness
+                  : CupertinoIcons.brightness_solid,
+            ),
+            color: NeumorphicTheme.defaultTextColor(context),
+          ),
+        ),
         middle: Text(
           widget.title,
           style: TextStyle(
@@ -114,8 +136,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                     NeumorphicTheme.defaultTextColor(context),
                                 fontWeight: FontWeight.bold),
                           ),
-                          // subtitle: Text("Intermediate", style: TextStyle(color: Colors.white)),
-
                           subtitle: Row(
                             children: <Widget>[
                               Icon(
@@ -172,10 +192,10 @@ _launchURL(String url) async {
 
 // NeumorphicButton(
 //           onClick: () {
-//             NeumorphicTheme.of(context).usedTheme =
-//                 NeumorphicTheme.isUsingDark(context)
-//                     ? UsedTheme.LIGHT
-//                     : UsedTheme.DARK;
+// NeumorphicTheme.of(context).usedTheme =
+//     NeumorphicTheme.isUsingDark(context)
+//         ? UsedTheme.LIGHT
+//         : UsedTheme.DARK;
 //           },
 //           style: NeumorphicStyle(shape: NeumorphicShape.flat),
 //           boxShape: NeumorphicBoxShape.circle(),
