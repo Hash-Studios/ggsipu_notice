@@ -103,10 +103,13 @@ class _MyHomePageState extends State<MyHomePage> {
                                     )),
                                 title: Text(
                                   "Abhay Maurya",
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.bold),
                                 ),
                                 subtitle: Text(
                                   "ECE, USICT",
+                                  style: TextStyle(color: Colors.grey),
                                 ),
                               ),
                             ),
