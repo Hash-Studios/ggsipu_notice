@@ -33,7 +33,7 @@ config.py
 __pycache__
 data.py
 notices.json
-ggsipu-notice-firebase-adminsdk-4c8gx-3fb2a73c7b.json
+server/ggsipu-notice-firebase-adminsdk-4c8gx-3fb2a73c7b.json
 
 # Web related
 lib/generated_plugin_registrant.dart
@@ -42,3 +42,4 @@ lib/generated_plugin_registrant.dart
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 android/app/google-services.json
 keys.py
+server/venv
