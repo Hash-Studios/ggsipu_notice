@@ -65,6 +65,94 @@ class _MyHomePageState extends State<MyHomePage> {
     return CupertinoPageScaffold(
       backgroundColor: NeumorphicTheme.baseColor(context),
       navigationBar: CupertinoNavigationBar(
+        leading: Card(
+          elevation: 0,
+          color: Colors.transparent,
+          child: IconButton(
+            padding: EdgeInsets.only(bottom: 2),
+            highlightColor: Colors.transparent,
+            hoverColor: Colors.transparent,
+            splashColor: Colors.transparent,
+            onPressed: () {
+              showCupertinoDialog(
+                  context: context,
+                  builder: (BuildContext context) => CupertinoAlertDialog(
+                        title: new Text("GGSIPU Notices"),
+                        content: Column(
+                          children: <Widget>[
+                            Padding(
+                                padding: EdgeInsets.only(top: 20),
+                                child: Text("Developed and Maintained by")),
+                            Card(
+                              elevation: 0,
+                              color: Colors.transparent,
+                              child: new ListTile(
+                                contentPadding:
+                                    EdgeInsets.fromLTRB(20, 10, 5, 10),
+                                leading: Container(
+                                    padding: EdgeInsets.only(right: 12.0),
+                                    decoration: new BoxDecoration(
+                                      border: new Border(
+                                        right: new BorderSide(
+                                            width: 1.0, color: Colors.white54),
+                                      ),
+                                    ),
+                                    child: CircleAvatar(
+                                      backgroundImage:
+                                          AssetImage("assets/images/dev.png"),
+                                    )),
+                                title: Text(
+                                  "Abhay Maurya",
+                                  style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                subtitle: Text(
+                                  "ECE, USICT",
+                                  style: TextStyle(color: Colors.black),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        actions: <Widget>[
+                          CupertinoDialogAction(
+                            child: Text("Github"),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              String link =
+                                  "https://www.github.com/LiquidatorCoder";
+                              _launchURL(link);
+                            },
+                          ),
+                          CupertinoDialogAction(
+                            child: Text("LinkedIn"),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              String link =
+                                  "https://www.linkedin.com/in/liquidatorcoder/";
+                              _launchURL(link);
+                            },
+                          ),
+                          CupertinoDialogAction(
+                            isDestructiveAction: true,
+                            child: Text("Back"),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          )
+                        ],
+                      ));
+            },
+            icon: Icon(
+              NeumorphicTheme.isUsingDark(context)
+                  ? CupertinoIcons.info
+                  : CupertinoIcons.info,
+            ),
+            color: NeumorphicTheme.defaultTextColor(context),
+            iconSize: 20,
+          ),
+        ),
         trailing: Card(
           elevation: 0,
           color: Colors.transparent,
