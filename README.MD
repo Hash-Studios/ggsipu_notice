@@ -7,4 +7,6 @@ A simple project created using Flutter
  - [ ] Add splash screen
  - [ ] Refactor the app
  - [ ] Push notification
- - [ ] Settings page
+ - [x] Settings page
+ - [ ] Pull to Refresh
+ - [ ] About dev
