@@ -1,10 +1,12 @@
 from apscheduler.schedulers.background import BackgroundScheduler
+from pyfcm import FCMNotification
 from flask import Flask, render_template
 from bs4 import BeautifulSoup
 import requests
 from urllib import parse
 import pyrebase
 from config import config
+from keys import api_key, registration_id
 
 
 def _scrap_notice_tr(tr):
@@ -35,6 +37,7 @@ def only_new_notice_tr(tag):
 
 
 def sensor():
+
     notices = []
 
     source = requests.get('http://www.ipu.ac.in/notices.php').text
@@ -55,6 +58,11 @@ def sensor():
             print("Data not Changed")
         else:
             print("Data Changed")
+            message_title = "New Notice Alert!!!"
+            message_body = "This is a pdf file"
+            result = push_service.notify_single_device(
+                registration_id=registration_id, message_title=message_title, message_body=message_body)
+            print(result)
             # for index in range(len(notices)):
             #     if notices[index] != notices_db.val()[index]:
             #         db.child("notices").child(str(index)).set(notices[index])
@@ -66,12 +74,16 @@ def sensor():
     print("Scheduler run completed!")
 
 
+push_service = FCMNotification(api_key=api_key)
+print("Initialised Push Service")
+
+
 firebase = pyrebase.initialize_app(config)
 db = firebase.database()
 print("Initialised Pyrebase")
 
 sched = BackgroundScheduler(daemon=True)
-sched.add_job(sensor, 'interval', seconds=10)
+sched.add_job(sensor, 'interval', seconds=20)
 sched.start()
 
 print("Started Scheduler")
