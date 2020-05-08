@@ -57,8 +57,6 @@ class AboutDialog extends StatelessWidget {
               color: Colors.white54,
               borderRadius: BorderRadius.circular(20),
               child: new ListTile(
-                // contentPadding:
-                //     EdgeInsets.fromLTRB(20, 10, 5, 10),
                 leading: Container(
                     padding: EdgeInsets.only(right: 12.0),
                     decoration: new BoxDecoration(

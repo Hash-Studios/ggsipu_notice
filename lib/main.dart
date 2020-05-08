@@ -13,9 +13,7 @@ class MyApp extends StatelessWidget {
     push.init();
     return CupertinoApp(
       title: 'GGSIPU Notices',
-      theme: CupertinoThemeData(
-          // brightness: Brightness.light,
-          ),
+      theme: CupertinoThemeData(),
       home: NeumorphicTheme(
         usedTheme: UsedTheme.SYSTEM,
         theme: NeumorphicThemeData(
