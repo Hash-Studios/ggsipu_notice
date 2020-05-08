@@ -79,39 +79,50 @@ class _MyHomePageState extends State<MyHomePage> {
                   builder: (BuildContext context) => CupertinoAlertDialog(
                         title: new Text("GGSIPU Notices"),
                         content: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: <Widget>[
                             Padding(
                                 padding: EdgeInsets.only(top: 20),
                                 child: Text("Developed and Maintained by")),
-                            Card(
-                              elevation: 0,
-                              color: Colors.transparent,
-                              child: new ListTile(
-                                contentPadding:
-                                    EdgeInsets.fromLTRB(20, 10, 5, 10),
-                                leading: Container(
-                                    padding: EdgeInsets.only(right: 12.0),
-                                    decoration: new BoxDecoration(
-                                      border: new Border(
-                                        right: new BorderSide(
-                                            width: 1.0, color: Colors.white54),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.fromLTRB(10, 20, 10, 20),
+                              child: Material(
+                                elevation: 0,
+                                color: Colors.white54,
+                                borderRadius: BorderRadius.circular(20),
+                                child: new ListTile(
+                                  // contentPadding:
+                                  //     EdgeInsets.fromLTRB(20, 10, 5, 10),
+                                  leading: Container(
+                                      padding: EdgeInsets.only(right: 12.0),
+                                      decoration: new BoxDecoration(
+                                        border: new Border(
+                                          right: new BorderSide(
+                                              width: 1.0,
+                                              color: Colors.white54),
+                                        ),
                                       ),
-                                    ),
-                                    child: CircleAvatar(
-                                      backgroundImage:
-                                          AssetImage("assets/images/dev.png"),
-                                    )),
-                                title: Text(
-                                  "Abhay Maurya",
-                                  style: TextStyle(
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                subtitle: Text(
-                                  "ECE, USICT",
-                                  style: TextStyle(color: Colors.grey),
+                                      child: CircleAvatar(
+                                        backgroundImage:
+                                            AssetImage("assets/images/dev.png"),
+                                      )),
+                                  title: Text(
+                                    "Abhay Maurya",
+                                    style: TextStyle(
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  subtitle: Text(
+                                    "ECE, USICT",
+                                    style: TextStyle(color: Colors.black87),
+                                  ),
                                 ),
                               ),
+                            ),
+                            Text(
+                              "This is an Unofficial App.",
+                              style: TextStyle(fontSize: 12),
                             ),
                           ],
                         ),
@@ -209,6 +220,11 @@ class _MyHomePageState extends State<MyHomePage> {
                       boxShape: NeumorphicBoxShape.roundRect(
                           borderRadius: BorderRadius.circular(15)),
                       child: ListTile(
+                          onTap: () {
+                            String link =
+                                "http://www.ipu.ac.in${lists[index]["url"]}";
+                            _launchURL(link);
+                          },
                           contentPadding: EdgeInsets.fromLTRB(20, 10, 5, 10),
                           leading: Container(
                             padding: EdgeInsets.only(right: 12.0),
@@ -281,26 +297,3 @@ _launchURL(String url) async {
     throw 'Could not launch $url';
   }
 }
-
-// NeumorphicButton(
-//           onClick: () {
-// NeumorphicTheme.of(context).usedTheme =
-//     NeumorphicTheme.isUsingDark(context)
-//         ? UsedTheme.LIGHT
-//         : UsedTheme.DARK;
-//           },
-//           style: NeumorphicStyle(shape: NeumorphicShape.flat),
-//           boxShape: NeumorphicBoxShape.circle(),
-//           padding: const EdgeInsets.all(12.0),
-//           child: Icon(
-//             CupertinoIcons.heart,
-//             color: NeumorphicTheme.defaultTextColor(context),
-//           ),
-//         ),
-
-// Navigator.push(
-//                                 context,
-//                                 CupertinoPageRoute(builder: (context) {
-//                                   return WebPage(notice: lists[index]);
-//                                 }),
-//                               );
