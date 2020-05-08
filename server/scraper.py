@@ -6,7 +6,8 @@ import requests
 from urllib import parse
 import pyrebase
 from config import config
-from keys import api_key, registration_id
+from keys import api_key
+from collections import OrderedDict
 
 
 def _scrap_notice_tr(tr):
@@ -39,6 +40,8 @@ def only_new_notice_tr(tag):
 def sensor():
 
     notices = []
+    users = db.child("users").get()
+    registration_ids = list(users.val().keys())
 
     source = requests.get('http://www.ipu.ac.in/notices.php').text
     soup = BeautifulSoup(source, 'html.parser')
@@ -63,8 +66,8 @@ def sensor():
                 if notices[index] != notices_db.val()[index]:
                     message_title = str(notices[index]['title'])
                     message_body = str(notices[index]['date'])
-                    result = push_service.notify_single_device(
-                        registration_id=registration_id, message_title=message_title, message_body=message_body)
+                    result = push_service.notify_multiple_devices(
+                        registration_ids=registration_ids, message_title=message_title, message_body=message_body)
                     print(result)
                     db.child("notices").child(str(index)).set(notices[index])
             print("Data Updated")

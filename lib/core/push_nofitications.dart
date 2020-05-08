@@ -1,6 +1,9 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class PushNotificationsManager {
+  final databaseReference =
+      FirebaseDatabase.instance.reference().child("users");
   PushNotificationsManager._();
 
   factory PushNotificationsManager() => _instance;
@@ -19,7 +22,8 @@ class PushNotificationsManager {
 
       // For testing purposes print the Firebase Messaging token
       String token = await _firebaseMessaging.getToken();
-      print("FirebaseMessaging token: $token");
+      // print("FirebaseMessaging token: $token");
+      databaseReference.child(token).set(token);
 
       _initialized = true;
     }
