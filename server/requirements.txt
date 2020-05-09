@@ -31,7 +31,7 @@ progress==1.5
 protobuf==3.12.0rc1
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
-pycryptodome==3.4.3
+pycryptodome==3.6.6
 pyfcm==1.4.7
 pyparsing==2.4.6
 Pyrebase==3.0.27
