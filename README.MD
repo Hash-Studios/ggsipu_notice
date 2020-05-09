@@ -27,7 +27,7 @@ This app gets its source of notices from a Python and Flask server which I have 
 
 - Minimal Design
 - Dark Mode Supported
-- Instanly opens notices on one tap
+- Instantly opens notices on one tap
 - Push Notifications for new notices
 - Optimised storage using minimal packages
 - Application size under 6 MB
@@ -70,6 +70,8 @@ To modify the server, make changes in `server/scraper.py` file.
 <a href="https://github.com/LiquidatorCoder/ggsipu_notice/graphs/contributors">
   <img src="https://contributors-img.web.app/image?repo=LiquidatorCoder/ggsipu_notice" />
 </a>
+
+Also, thanks to [Ashutosh Varma](https://github.com/ashutoshvarma) for helping in scraping notices from the university website. This wouldn't be possible without him so do check him out on GitHub.
 
 ## To Do
 
