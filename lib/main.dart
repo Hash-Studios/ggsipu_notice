@@ -36,7 +36,7 @@ class MyApp extends StatelessWidget {
           lightSource: LightSource.topLeft,
           depth: 8,
         ),
-        child: MyHomePage(title: 'GGSIPU Notices'),
+        child: MyHomePage(title: 'Notices'),
       ),
       debugShowCheckedModeBanner: false,
     );

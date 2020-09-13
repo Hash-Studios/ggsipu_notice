@@ -5,6 +5,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:another/ui/about.dart';
 import 'package:another/ui/noticetile.dart';
 import 'package:another/ui/themeswitch.dart';
+import 'package:http/http.dart' as http;
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
@@ -24,39 +25,67 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       backgroundColor: NeumorphicTheme.baseColor(context),
-      navigationBar: CupertinoNavigationBar(
-        leading: AboutButton(),
-        trailing: ThemeSwitchButton(),
-        middle: Text(
-          widget.title,
-          style: TextStyle(
-            color: NeumorphicTheme.defaultTextColor(context),
+      child: CustomScrollView(
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
+        slivers: <Widget>[
+          CupertinoSliverNavigationBar(
+            leading: AboutButton(),
+            trailing: ThemeSwitchButton(),
+            automaticallyImplyLeading: false,
+            padding: EdgeInsetsDirectional.zero,
+            largeTitle: Text(
+              widget.title,
+              style: TextStyle(
+                color: NeumorphicTheme.defaultTextColor(context),
+              ),
+            ),
+            backgroundColor: NeumorphicTheme.accentColor(context),
           ),
-        ),
-        backgroundColor: NeumorphicTheme.accentColor(context),
-      ),
-      child: Center(
-        child: FutureBuilder(
-          future: databaseReference.once(),
-          builder: (context, AsyncSnapshot<DataSnapshot> snapshot) {
-            if (snapshot.hasData) {
-              lists = [];
-              List<dynamic> values = snapshot.data.value;
-              lists = values;
-              return new ListView.builder(
-                shrinkWrap: true,
-                itemCount: lists.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return NoticeTile(lists: lists, index: index);
-                },
+          CupertinoSliverRefreshControl(
+            onRefresh: () {
+              return Future<void>.delayed(const Duration(seconds: 1))
+                ..then<void>((_) {
+                  if (mounted) {
+                    http.get("https://ggsipu-notices.herokuapp.com/");
+                    setState(() {});
+                  }
+                });
+            },
+          ),
+          FutureBuilder(
+            future: databaseReference.once(),
+            builder: (context, AsyncSnapshot<DataSnapshot> snapshot) {
+              if (snapshot.hasData) {
+                lists = [];
+                List<dynamic> values = snapshot.data.value;
+                lists = values;
+                return new SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (BuildContext context, int index) {
+                      return NoticeTile(lists: lists, index: index);
+                    },
+                    childCount: lists.length,
+                  ),
+                );
+              }
+              return SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (BuildContext context, int index) {
+                    return Material(
+                      child: CupertinoActivityIndicator(
+                        animating: true,
+                        radius: 20,
+                      ),
+                    );
+                  },
+                  childCount: lists.length,
+                ),
               );
-            }
-            return CupertinoActivityIndicator(
-              animating: true,
-              radius: 20,
-            );
-          },
-        ),
+            },
+          ),
+        ],
       ),
     );
   }
