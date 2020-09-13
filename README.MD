@@ -80,5 +80,5 @@ Also, thanks to [Ashutosh Varma](https://github.com/ashutoshvarma) for helping i
 - [x] Refactor the app
 - [x] Push notification
 - [x] Settings page
-- [ ] Pull to Refresh
+- [x] Pull to Refresh
 - [x] About dev
