@@ -1,4 +1,4 @@
-package com.example.ggsipu_notice
+package com.hash.ggsipu_notice
 
 import androidx.annotation.NonNull;
 import io.flutter.embedding.android.FlutterActivity
