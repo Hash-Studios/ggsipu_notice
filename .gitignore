@@ -43,3 +43,4 @@ lib/generated_plugin_registrant.dart
 android/app/google-services.json
 keys.py
 server/venv
+key.jks
