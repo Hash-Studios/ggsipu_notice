@@ -81,7 +81,7 @@ class AboutDialog extends StatelessWidget {
             ),
           ),
           Text(
-            "This is an Unofficial App.",
+            "This is an unofficial app.",
             style: TextStyle(fontSize: 12),
           ),
         ],

@@ -10,6 +10,9 @@
         android:name="io.flutter.app.FlutterApplication"
         android:label="GGSIPU Notices"
         android:icon="@mipmap/ic_launcher">
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-4649644680694757~9217941552"/>
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"
