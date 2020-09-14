@@ -24,8 +24,7 @@ class NoticeTile extends StatelessWidget {
       ),
       child: Neumorphic(
         style: NeumorphicStyle(shape: NeumorphicShape.flat, depth: 4),
-        boxShape: NeumorphicBoxShape.roundRect(
-            borderRadius: BorderRadius.circular(15)),
+        boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(15)),
         child: ListTile(
             onTap: () {
               String link = "http://www.ipu.ac.in${lists[index]["url"]}";

@@ -74,13 +74,20 @@ class _MyHomePageState extends State<MyHomePage> {
                 delegate: SliverChildBuilderDelegate(
                   (BuildContext context, int index) {
                     return Material(
-                      child: CupertinoActivityIndicator(
-                        animating: true,
-                        radius: 20,
+                      color: Colors.transparent,
+                      child: SizedBox(
+                        height: MediaQuery.of(context).size.height - 200.0,
+                        width: MediaQuery.of(context).size.width,
+                        child: Center(
+                          child: CupertinoActivityIndicator(
+                            animating: true,
+                            radius: 20,
+                          ),
+                        ),
                       ),
                     );
                   },
-                  childCount: lists.length,
+                  childCount: 1,
                 ),
               );
             },
