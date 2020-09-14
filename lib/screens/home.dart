@@ -25,13 +25,15 @@ class _MyHomePageState extends State<MyHomePage> {
     keywords: <String>['flutterio', 'beautiful apps'],
     contentUrl: 'https://flutter.io',
     childDirected: false,
-    testDevices: <String>["9033810B9AD198E151CFEC2CB5073E2B"],
+    // testDevices: <String>["9033810B9AD198E151CFEC2CB5073E2B"],
+    testDevices: <String>[],
   );
   InterstitialAd _interstitialAd;
 
   InterstitialAd createInterstitialAd() {
     return InterstitialAd(
-      adUnitId: InterstitialAd.testAdUnitId,
+      // adUnitId: InterstitialAd.testAdUnitId,
+      adUnitId: adUnitId,
       targetingInfo: targetingInfo,
       listener: (MobileAdEvent event) {
         print("InterstitialAd event $event");
