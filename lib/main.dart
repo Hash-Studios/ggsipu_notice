@@ -9,8 +9,6 @@ void main() => runApp(MyApp());
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final push = PushNotificationsManager();
-    push.init();
     return CupertinoApp(
       title: 'GGSIPU Notices',
       theme: CupertinoThemeData(),
