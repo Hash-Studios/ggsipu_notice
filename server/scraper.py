@@ -9,6 +9,8 @@ from config import config
 from keys import api_key
 from collections import OrderedDict
 
+notices = []
+
 
 def _scrap_notice_tr(tr):
     tds = tr.find_all('td')
@@ -39,6 +41,8 @@ def only_new_notice_tr(tag):
 
 def sensor():
 
+    global notices
+
     notices = []
     users = db.child("users").get()
     registration_ids = list(users.val().keys())
@@ -61,14 +65,16 @@ def sensor():
             print("Data not Changed")
         else:
             print("Data Changed")
-
+            send_notification_once = True
             for index in range(len(notices)):
                 if notices[index] != notices_db.val()[index]:
                     message_title = str(notices[index]['title'])
                     message_body = str(notices[index]['date'])
-                    result = push_service.notify_multiple_devices(
-                        registration_ids=registration_ids, message_title=message_title, message_body=message_body)
-                    print(result)
+                    if send_notification_once:
+                        result = push_service.notify_multiple_devices(
+                            registration_ids=registration_ids, message_title=message_title, message_body=message_body)
+                        print(result)
+                        send_notification_once = False
                     db.child("notices").child(str(index)).set(notices[index])
             print("Data Updated")
     else:
@@ -98,7 +104,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def home():
-    return "Welcome, Services are running!"
+    return "Welcome, Services are running! Latest Notices -> " + str(notices)
 
 
 if __name__ == "__main__":
