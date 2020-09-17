@@ -1,8 +1,8 @@
-import 'package:another/core/push_nofitications.dart';
+import 'package:ggsipu_notice/core/push_nofitications.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
-import 'package:another/screens/home.dart';
+import 'package:ggsipu_notice/screens/home.dart';
 
 void main() => runApp(MyApp());
 

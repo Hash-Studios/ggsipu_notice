@@ -1,12 +1,12 @@
-import 'package:another/keys.dart';
+import 'package:ggsipu_notice/keys.dart';
 import 'package:firebase_admob/firebase_admob.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:another/ui/about.dart';
-import 'package:another/ui/noticetile.dart';
-import 'package:another/ui/themeswitch.dart';
+import 'package:ggsipu_notice/ui/about.dart';
+import 'package:ggsipu_notice/ui/noticetile.dart';
+import 'package:ggsipu_notice/ui/themeswitch.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
 
