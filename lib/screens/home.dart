@@ -44,7 +44,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     FirebaseAdMob.instance.initialize(appId: appId);
-    _timerForInter = Timer.periodic(Duration(seconds: 30), (result) {
+    _timerForInter = Timer.periodic(Duration(seconds: 20), (result) {
       _interstitialAd = createInterstitialAd()
         ..load()
         ..show();
@@ -99,7 +99,10 @@ class _MyHomePageState extends State<MyHomePage> {
           FutureBuilder(
             future: databaseReference.once(),
             builder: (context, AsyncSnapshot<DataSnapshot> snapshot) {
+              print("Loading data from Realtime Database");
+              print(snapshot.connectionState);
               if (snapshot.hasData) {
+                print("Data Loaded");
                 lists = [];
                 List<dynamic> values = snapshot.data.value;
                 lists = values;
