@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:ggsipu_notice/keys.dart';
 import 'package:firebase_admob/firebase_admob.dart';
 import 'package:flutter/cupertino.dart';
@@ -9,6 +10,7 @@ import 'package:ggsipu_notice/ui/noticetile.dart';
 import 'package:ggsipu_notice/ui/themeswitch.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
+import 'package:url_launcher/url_launcher.dart';
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
@@ -30,13 +32,20 @@ class _MyHomePageState extends State<MyHomePage> {
   );
   InterstitialAd _interstitialAd;
 
-  InterstitialAd createInterstitialAd() {
+  InterstitialAd createInterstitialAd(int index) {
     return InterstitialAd(
       // adUnitId: InterstitialAd.testAdUnitId,
       adUnitId: adUnitId,
       targetingInfo: targetingInfo,
       listener: (MobileAdEvent event) {
         print("InterstitialAd event $event");
+        if (event == MobileAdEvent.closed) {
+          print('Interstitial closed');
+          if (index != null) {
+            String link = "http://www.ipu.ac.in${lists[index]["url"]}";
+            _launchURL(link);
+          }
+        }
       },
     );
   }
@@ -44,11 +53,22 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     FirebaseAdMob.instance.initialize(appId: appId);
-    _timerForInter = Timer.periodic(Duration(seconds: 20), (result) {
-      _interstitialAd = createInterstitialAd()
-        ..load()
-        ..show();
-    });
+    if (this.mounted) {
+      Future.delayed(Duration(seconds: 3)).then(
+        (value) {
+          _interstitialAd = createInterstitialAd(null)
+            ..load()
+            ..show();
+        },
+      );
+    }
+    // _timerForInter = Timer.periodic(Duration(seconds: 20), (result) {
+    //   if (this.mounted) {
+    // _interstitialAd = createInterstitialAd()
+    //   ..load()
+    //   ..show();
+    //   }
+    // });
     super.initState();
   }
 
@@ -109,7 +129,15 @@ class _MyHomePageState extends State<MyHomePage> {
                 return new SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (BuildContext context, int index) {
-                      return NoticeTile(lists: lists, index: index);
+                      return NoticeTile(
+                          lists: lists,
+                          index: index,
+                          func: () {
+                            HapticFeedback.vibrate();
+                            _interstitialAd = createInterstitialAd(index)
+                              ..load()
+                              ..show();
+                          });
                     },
                     childCount: lists.length,
                   ),
@@ -140,5 +168,13 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
     );
+  }
+
+  _launchURL(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
   }
 }

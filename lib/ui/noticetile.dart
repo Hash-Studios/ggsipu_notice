@@ -1,17 +1,18 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class NoticeTile extends StatelessWidget {
   const NoticeTile({
     Key key,
     @required this.lists,
     @required this.index,
+    @required this.func,
   }) : super(key: key);
 
   final List lists;
   final int index;
+  final Function func;
 
   @override
   Widget build(BuildContext context) {
@@ -27,8 +28,7 @@ class NoticeTile extends StatelessWidget {
         boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(15)),
         child: ListTile(
             onTap: () {
-              String link = "http://www.ipu.ac.in${lists[index]["url"]}";
-              _launchURL(link);
+              func();
             },
             contentPadding: EdgeInsets.fromLTRB(20, 10, 5, 10),
             leading: Container(
@@ -68,19 +68,10 @@ class NoticeTile extends StatelessWidget {
               child: Icon(Icons.keyboard_arrow_right,
                   color: NeumorphicTheme.defaultTextColor(context), size: 30.0),
               onClick: () {
-                String link = "http://www.ipu.ac.in${lists[index]["url"]}";
-                _launchURL(link);
+                func();
               },
             )),
       ),
     );
-  }
-
-  _launchURL(String url) async {
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
-      throw 'Could not launch $url';
-    }
   }
 }
