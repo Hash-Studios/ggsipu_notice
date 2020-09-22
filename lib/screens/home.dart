@@ -42,6 +42,13 @@ class _MyHomePageState extends State<MyHomePage> {
         if (event == MobileAdEvent.closed) {
           print('Interstitial closed');
           if (index != null) {
+            Navigator.pop(context);
+            String link = "http://www.ipu.ac.in${lists[index]["url"]}";
+            _launchURL(link);
+          }
+        } else if (event == MobileAdEvent.failedToLoad) {
+          if (index != null) {
+            Navigator.pop(context);
             String link = "http://www.ipu.ac.in${lists[index]["url"]}";
             _launchURL(link);
           }
@@ -53,22 +60,6 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     FirebaseAdMob.instance.initialize(appId: appId);
-    if (this.mounted) {
-      Future.delayed(Duration(seconds: 3)).then(
-        (value) {
-          _interstitialAd = createInterstitialAd(null)
-            ..load()
-            ..show();
-        },
-      );
-    }
-    // _timerForInter = Timer.periodic(Duration(seconds: 20), (result) {
-    //   if (this.mounted) {
-    // _interstitialAd = createInterstitialAd()
-    //   ..load()
-    //   ..show();
-    //   }
-    // });
     super.initState();
   }
 
@@ -132,11 +123,21 @@ class _MyHomePageState extends State<MyHomePage> {
                       return NoticeTile(
                           lists: lists,
                           index: index,
-                          func: () {
+                          func: () async {
                             HapticFeedback.vibrate();
-                            _interstitialAd = createInterstitialAd(index)
-                              ..load()
-                              ..show();
+                            showCupertinoDialog(
+                                context: context,
+                                barrierDismissible: false,
+                                builder: (BuildContext context) =>
+                                    CupertinoAlertDialog(
+                                      content: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: CupertinoActivityIndicator(),
+                                      ),
+                                    ));
+                            var _interstitialAd1 = createInterstitialAd(index);
+                            await _interstitialAd1.load();
+                            _interstitialAd1.show();
                           });
                     },
                     childCount: lists.length,
