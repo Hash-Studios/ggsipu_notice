@@ -21,6 +21,7 @@ class AboutButton extends StatelessWidget {
         onPressed: () {
           showCupertinoDialog(
               context: context,
+              barrierDismissible: true,
               builder: (BuildContext context) => AboutDialog());
         },
         icon: Icon(
