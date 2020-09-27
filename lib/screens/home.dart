@@ -1,6 +1,5 @@
 import 'package:flutter/services.dart';
-import 'package:ggsipu_notice/keys.dart';
-import 'package:firebase_admob/firebase_admob.dart';
+// import 'package:ggsipu_notice/keys.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
@@ -21,52 +20,52 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  Timer _timerForInter;
+  // Timer _timerForInter;
 
-  MobileAdTargetingInfo targetingInfo = MobileAdTargetingInfo(
-    keywords: <String>['flutterio', 'beautiful apps'],
-    contentUrl: 'https://flutter.io',
-    childDirected: false,
-    // testDevices: <String>["9033810B9AD198E151CFEC2CB5073E2B"],
-    testDevices: <String>[],
-  );
-  InterstitialAd _interstitialAd;
+  // MobileAdTargetingInfo targetingInfo = MobileAdTargetingInfo(
+  //   keywords: <String>['flutterio', 'beautiful apps'],
+  //   contentUrl: 'https://flutter.io',
+  //   childDirected: false,
+  //   // testDevices: <String>["9033810B9AD198E151CFEC2CB5073E2B"],
+  //   testDevices: <String>[],
+  // );
+  // InterstitialAd _interstitialAd;
 
-  InterstitialAd createInterstitialAd(int index) {
-    return InterstitialAd(
-      // adUnitId: InterstitialAd.testAdUnitId,
-      adUnitId: adUnitId,
-      targetingInfo: targetingInfo,
-      listener: (MobileAdEvent event) {
-        print("InterstitialAd event $event");
-        if (event == MobileAdEvent.closed) {
-          print('Interstitial closed');
-          if (index != null) {
-            Navigator.pop(context);
-            String link = "http://www.ipu.ac.in${lists[index]["url"]}";
-            _launchURL(link);
-          }
-        } else if (event == MobileAdEvent.failedToLoad) {
-          if (index != null) {
-            Navigator.pop(context);
-            String link = "http://www.ipu.ac.in${lists[index]["url"]}";
-            _launchURL(link);
-          }
-        }
-      },
-    );
-  }
+  // InterstitialAd createInterstitialAd(int index) {
+  //   return InterstitialAd(
+  //     // adUnitId: InterstitialAd.testAdUnitId,
+  //     adUnitId: adUnitId,
+  //     targetingInfo: targetingInfo,
+  //     listener: (MobileAdEvent event) {
+  //       print("InterstitialAd event $event");
+  //       if (event == MobileAdEvent.closed) {
+  //         print('Interstitial closed');
+  //         if (index != null) {
+  //           Navigator.pop(context);
+  //           String link = "http://www.ipu.ac.in${lists[index]["url"]}";
+  //           _launchURL(link);
+  //         }
+  //       } else if (event == MobileAdEvent.failedToLoad) {
+  //         if (index != null) {
+  //           Navigator.pop(context);
+  //           String link = "http://www.ipu.ac.in${lists[index]["url"]}";
+  //           _launchURL(link);
+  //         }
+  //       }
+  //     },
+  //   );
+  // }
 
   @override
   void initState() {
-    FirebaseAdMob.instance.initialize(appId: appId);
+    // FirebaseAdMob.instance.initialize(appId: appId);
     super.initState();
   }
 
   @override
   void dispose() {
-    _timerForInter.cancel();
-    _interstitialAd.dispose();
+    // _timerForInter.cancel();
+    // _interstitialAd.dispose();
     super.dispose();
   }
 
@@ -135,9 +134,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                         child: CupertinoActivityIndicator(),
                                       ),
                                     ));
-                            var _interstitialAd1 = createInterstitialAd(index);
-                            await _interstitialAd1.load();
-                            _interstitialAd1.show();
+                            // var _interstitialAd1 = createInterstitialAd(index);
+                            // await _interstitialAd1.load();
+                            // _interstitialAd1.show();
                           });
                     },
                     childCount: lists.length,
