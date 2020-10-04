@@ -44,7 +44,7 @@ class AboutDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CupertinoAlertDialog(
-      title: new Text("GGSIPU Notices v1.0.4+6"),
+      title: new Text("GGSIPU Notices v1.0.5+7"),
       content: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
