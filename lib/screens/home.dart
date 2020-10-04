@@ -77,6 +77,9 @@ class _MyHomePageState extends State<MyHomePage> {
   final databaseReference =
       FirebaseDatabase.instance.reference().child("notices");
   List lists = [];
+  bool priority = false;
+  List priorityLists;
+  List latestLists;
 
   @override
   Widget build(BuildContext context) {
@@ -121,32 +124,135 @@ class _MyHomePageState extends State<MyHomePage> {
                 lists = [];
                 List<dynamic> values = snapshot.data.value;
                 lists = values;
+                latestLists = lists;
                 return new SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (BuildContext context, int index) {
-                      if (index == 10) {
+                      if (index == 0) {
+                        return Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 20, 5, 20),
+                          child: Row(
+                            children: [
+                              Text(
+                                priority ? "Priority" : "Latest",
+                                style: TextStyle(
+                                  color:
+                                      NeumorphicTheme.defaultTextColor(context)
+                                          .withOpacity(0.8),
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 20,
+                                ),
+                              ),
+                              Spacer(),
+                              ClipOval(
+                                child: Material(
+                                  elevation: 0,
+                                  color: Colors.transparent,
+                                  borderRadius: BorderRadius.circular(500),
+                                  child: IconButton(
+                                    icon: priority
+                                        ? Icon(CupertinoIcons.time)
+                                        : Icon(CupertinoIcons.star),
+                                    color: NeumorphicTheme.defaultTextColor(
+                                            context)
+                                        .withOpacity(0.8),
+                                    onPressed: () {
+                                      setState(() {
+                                        priority = !priority;
+                                      });
+                                      priorityLists = [];
+                                      lists.forEach(
+                                        (element) {
+                                          element["title"]
+                                                  .toString()
+                                                  .toLowerCase()
+                                                  .contains("datesheet")
+                                              ? priorityLists.add(element)
+                                              : element["title"]
+                                                      .toString()
+                                                      .toLowerCase()
+                                                      .contains("final")
+                                                  ? priorityLists.add(element)
+                                                  : element["title"]
+                                                          .toString()
+                                                          .toLowerCase()
+                                                          .contains("exam")
+                                                      ? priorityLists
+                                                          .add(element)
+                                                      : element["title"]
+                                                              .toString()
+                                                              .toLowerCase()
+                                                              .contains(
+                                                                  "examination")
+                                                          ? priorityLists
+                                                              .add(element)
+                                                          : print("");
+                                        },
+                                      );
+                                      print(priorityLists.length);
+                                      print(latestLists.length);
+                                    },
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                        );
+                      }
+                      if (priority
+                          ? index == priorityLists.length + 1
+                          : index == latestLists.length + 1) {
                         return SizedBox(height: 20);
                       }
+                      if (priorityLists != null) {
+                        if (priorityLists.isEmpty && priority) {
+                          return SizedBox(
+                            height: MediaQuery.of(context).size.height - 400.0,
+                            width: MediaQuery.of(context).size.width,
+                            child: Center(
+                              child: Text(
+                                "No Priority Notices!",
+                                style: TextStyle(
+                                  color:
+                                      NeumorphicTheme.defaultTextColor(context),
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 20,
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+                      }
                       return NoticeTile(
-                        lists: lists,
-                        index: index,
+                        lists: priority ? priorityLists : latestLists,
+                        index: index - 1,
                         func: () async {
                           // HapticFeedback.vibrate();
-                          bool download = lists[index]["url"]
-                              .toString()
-                              .toLowerCase()
-                              .contains(".pdf");
+                          bool download = priority
+                              ? priorityLists[index - 1]["url"]
+                                  .toString()
+                                  .toLowerCase()
+                                  .contains(".pdf")
+                              : latestLists[index - 1]["url"]
+                                  .toString()
+                                  .toLowerCase()
+                                  .contains(".pdf");
                           showCupertinoModalPopup(
                               context: context,
                               builder: (BuildContext context) => ActionModal(
                                     download: download,
-                                    lists: lists,
-                                    index: index,
+                                    lists:
+                                        priority ? priorityLists : latestLists,
+                                    index: index - 1,
                                   ));
                         },
                       );
                     },
-                    childCount: lists.length + 1,
+                    childCount: priority
+                        ? priorityLists.length == 0
+                            ? priorityLists.length + 3
+                            : priorityLists.length + 2
+                        : latestLists.length + 2,
                   ),
                 );
               }
