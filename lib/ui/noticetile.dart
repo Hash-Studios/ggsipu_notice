@@ -33,7 +33,7 @@ class NoticeTile extends StatelessWidget {
           onTap: () {
             func();
           },
-          contentPadding: EdgeInsets.fromLTRB(20, 10, 5, 10),
+          contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
           leading: Container(
             padding: EdgeInsets.only(right: 12.0),
             decoration: new BoxDecoration(
