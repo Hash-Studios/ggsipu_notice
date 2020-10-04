@@ -124,6 +124,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 return new SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (BuildContext context, int index) {
+                      if (index == 10) {
+                        return SizedBox(height: 20);
+                      }
                       return NoticeTile(
                         lists: lists,
                         index: index,
@@ -143,7 +146,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         },
                       );
                     },
-                    childCount: lists.length,
+                    childCount: lists.length + 1,
                   ),
                 );
               }
@@ -244,7 +247,7 @@ class ActionModal extends StatelessWidget {
           onPressed: () {
             Navigator.pop(context);
             String link = "http://www.ipu.ac.in${lists[index]["url"]}";
-            Share.share(link);
+            Share.share("${lists[index]["title"]} ->\n$link");
           },
           child: Text("Share"),
         ),
