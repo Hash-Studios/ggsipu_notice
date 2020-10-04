@@ -28,20 +28,27 @@ This app gets its source of notices from a Python and Flask server which I have 
 
 ## Features
 
-- Minimal Design
-- Dark Mode Supported
-- Instantly opens notices on one tap
+- Clean Neumorphic design
+- Auto Dark Mode
+- Instantly view or download notices in one tap
 - Push Notifications for new notices
-- Optimised storage using minimal packages
-- Application size under 7 MB
-- Adaptive UI (changes theme based on system default)
+- Find notices by priority
+- Fully optimised and smooth application
+- Small application size (Under 6.5 MB)
 
 ## Demo
 
+### Dark Theme
 
-| ![](demo/2.jpg) | ![](demo/4.jpg) | ![](demo/1.jpg) | ![](demo/3.jpg) |
+| ![](demo/1.jpg) | ![](demo/2.jpg) | ![](demo/3.jpg) | ![](demo/4.jpg) |
 | :-------------: | :-------------: | :-------------: | :-------------: |
-|   Notice Board  |  About Page     |  Notice Board   |  About Page     |
+|   Latest        |    Priority     |  Notice Actions |      About      |
+
+### Light Theme
+
+| ![](demo/5.jpg) | ![](demo/6.jpg) | ![](demo/7.jpg) | ![](demo/8.jpg) |
+| :-------------: | :-------------: | :-------------: | :-------------: |
+|   Latest        |    Priority     |  Notice Actions |      About      |
 
 ## Support
 
