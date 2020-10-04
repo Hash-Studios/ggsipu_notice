@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:ggsipu_notice/ui/about.dart';
 import 'package:ggsipu_notice/ui/noticetile.dart';
 import 'package:ggsipu_notice/ui/themeswitch.dart';
@@ -120,24 +121,53 @@ class _MyHomePageState extends State<MyHomePage> {
                   delegate: SliverChildBuilderDelegate(
                     (BuildContext context, int index) {
                       return NoticeTile(
-                          lists: lists,
-                          index: index,
-                          func: () async {
-                            HapticFeedback.vibrate();
-                            showCupertinoDialog(
-                                context: context,
-                                barrierDismissible: false,
-                                builder: (BuildContext context) =>
-                                    CupertinoAlertDialog(
-                                      content: Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: CupertinoActivityIndicator(),
-                                      ),
-                                    ));
-                            // var _interstitialAd1 = createInterstitialAd(index);
-                            // await _interstitialAd1.load();
-                            // _interstitialAd1.show();
-                          });
+                        lists: lists,
+                        index: index,
+                        func: () async {
+                          HapticFeedback.vibrate();
+                          // showCupertinoDialog(
+                          //     context: context,
+                          //     barrierDismissible: false,
+                          //     builder: (BuildContext context) =>
+                          //         CupertinoAlertDialog(
+                          //           content: Padding(
+                          //             padding: const EdgeInsets.all(8.0),
+                          //             child: CupertinoActivityIndicator(),
+                          //           ),
+                          //         ));
+                          // var _interstitialAd1 = createInterstitialAd(index);
+                          // await _interstitialAd1.load();
+                          // _interstitialAd1.show();
+                          // Navigator.pop(context);
+                          Fluttertoast.showToast(
+                            msg: "Tap and hold to download the notice.",
+                            toastLength: Toast.LENGTH_LONG,
+                            gravity: ToastGravity.CENTER,
+                          );
+                          String link =
+                              "http://www.ipu.ac.in${lists[index]["url"]}";
+                          _launchURL(link);
+                        },
+                        dfunc: () async {
+                          HapticFeedback.vibrate();
+                          showCupertinoModalPopup(
+                              context: context,
+                              builder: (BuildContext context) =>
+                                  CupertinoActionSheet(
+                                    actions: [
+                                      CupertinoActionSheetAction(
+                                        isDefaultAction: true,
+                                        onPressed: () {
+                                          String link =
+                                              "http://www.ipu.ac.in${lists[index]["url"]}";
+                                          _launchURL(link);
+                                        },
+                                        child: Text("Download"),
+                                      )
+                                    ],
+                                  ));
+                        },
+                      );
                     },
                     childCount: lists.length,
                   ),
