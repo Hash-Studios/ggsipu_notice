@@ -1,14 +1,18 @@
-import 'package:flutter/services.dart';
 // import 'package:ggsipu_notice/keys.dart';
+import 'dart:io';
+import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:ggsipu_notice/ui/about.dart';
 import 'package:ggsipu_notice/ui/noticetile.dart';
 import 'package:ggsipu_notice/ui/themeswitch.dart';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:share/share.dart';
 import 'dart:async';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -124,47 +128,17 @@ class _MyHomePageState extends State<MyHomePage> {
                         lists: lists,
                         index: index,
                         func: () async {
-                          HapticFeedback.vibrate();
-                          // showCupertinoDialog(
-                          //     context: context,
-                          //     barrierDismissible: false,
-                          //     builder: (BuildContext context) =>
-                          //         CupertinoAlertDialog(
-                          //           content: Padding(
-                          //             padding: const EdgeInsets.all(8.0),
-                          //             child: CupertinoActivityIndicator(),
-                          //           ),
-                          //         ));
-                          // var _interstitialAd1 = createInterstitialAd(index);
-                          // await _interstitialAd1.load();
-                          // _interstitialAd1.show();
-                          // Navigator.pop(context);
-                          Fluttertoast.showToast(
-                            msg: "Tap and hold to download the notice.",
-                            toastLength: Toast.LENGTH_LONG,
-                            gravity: ToastGravity.CENTER,
-                          );
-                          String link =
-                              "http://www.ipu.ac.in${lists[index]["url"]}";
-                          _launchURL(link);
-                        },
-                        dfunc: () async {
-                          HapticFeedback.vibrate();
+                          // HapticFeedback.vibrate();
+                          bool download = lists[index]["url"]
+                              .toString()
+                              .toLowerCase()
+                              .contains(".pdf");
                           showCupertinoModalPopup(
                               context: context,
-                              builder: (BuildContext context) =>
-                                  CupertinoActionSheet(
-                                    actions: [
-                                      CupertinoActionSheetAction(
-                                        isDefaultAction: true,
-                                        onPressed: () {
-                                          String link =
-                                              "http://www.ipu.ac.in${lists[index]["url"]}";
-                                          _launchURL(link);
-                                        },
-                                        child: Text("Download"),
-                                      )
-                                    ],
+                              builder: (BuildContext context) => ActionModal(
+                                    download: download,
+                                    lists: lists,
+                                    index: index,
                                   ));
                         },
                       );
@@ -196,6 +170,92 @@ class _MyHomePageState extends State<MyHomePage> {
             },
           ),
         ],
+      ),
+    );
+  }
+}
+
+class ActionModal extends StatelessWidget {
+  final download;
+  final lists;
+  final index;
+  ActionModal({
+    @required this.download,
+    @required this.lists,
+    @required this.index,
+  });
+
+  Future<String> _findLocalPath() async {
+    final directory = await getExternalStorageDirectory();
+    return directory.path;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoActionSheet(
+      title: Text("Notice"),
+      message: Text(lists[index]["title"]),
+      actions: [
+        CupertinoActionSheetAction(
+          isDefaultAction: true,
+          onPressed: () {
+            Navigator.pop(context);
+            String link = "http://www.ipu.ac.in${lists[index]["url"]}";
+            _launchURL(link);
+          },
+          child: Text("View"),
+        ),
+        download
+            ? CupertinoActionSheetAction(
+                isDefaultAction: false,
+                onPressed: () async {
+                  Navigator.pop(context);
+                  var status = await Permission.storage.status;
+                  if (!status.isGranted) {
+                    await Permission.storage.request();
+                  }
+                  String link = "http://www.ipu.ac.in${lists[index]["url"]}";
+                  String _localPath = (await _findLocalPath()) + '/Notices';
+                  final savedDir = Directory(_localPath);
+                  bool hasExisted = await savedDir.exists();
+                  if (!hasExisted) {
+                    savedDir.create();
+                  }
+                  final f = Random();
+                  String name = "";
+                  for (int i = 0; i < 10; i++) {
+                    name = name + f.nextInt(9).toString();
+                  }
+                  final taskId = await FlutterDownloader.enqueue(
+                    url: link,
+                    fileName:
+                        '${lists[index]["title"].toString().replaceAll("/", "")} $name.pdf',
+                    savedDir: _localPath,
+                    showNotification: true,
+                    openFileFromNotification: true,
+                  );
+                  print(_localPath);
+                },
+                child: Text("Save to Storage"),
+              )
+            : Container(),
+        CupertinoActionSheetAction(
+          isDefaultAction: false,
+          onPressed: () {
+            Navigator.pop(context);
+            String link = "http://www.ipu.ac.in${lists[index]["url"]}";
+            Share.share(link);
+          },
+          child: Text("Share"),
+        ),
+      ],
+      cancelButton: CupertinoActionSheetAction(
+        isDefaultAction: false,
+        isDestructiveAction: true,
+        onPressed: () {
+          Navigator.pop(context);
+        },
+        child: Text("Cancel"),
       ),
     );
   }

@@ -8,13 +8,11 @@ class NoticeTile extends StatelessWidget {
     @required this.lists,
     @required this.index,
     @required this.func,
-    @required this.dfunc,
   }) : super(key: key);
 
   final List lists;
   final int index;
   final Function func;
-  final Function dfunc;
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +28,7 @@ class NoticeTile extends StatelessWidget {
         boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(15)),
         child: ListTile(
           onLongPress: () {
-            dfunc();
+            func();
           },
           onTap: () {
             func();

@@ -23,9 +23,12 @@ dependencies:
   firebase_database: 3.1.5
   url_launcher: ^5.4.5
   firebase_messaging: ^6.0.13
-  fluttertoast: ^7.1.1
   cupertino_icons: ^1.0.0
+  share: ^0.6.5+2
   # firebase_admob: ^0.9.3+4
+  flutter_downloader: ^1.5.1
+  path_provider: ^1.6.18
+  permission_handler: ^5.0.1+1
 
 dev_dependencies:
   flutter_test:
