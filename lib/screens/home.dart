@@ -1,4 +1,3 @@
-// import 'package:ggsipu_notice/keys.dart';
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter/cupertino.dart';
@@ -25,55 +24,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  // Timer _timerForInter;
-
-  // MobileAdTargetingInfo targetingInfo = MobileAdTargetingInfo(
-  //   keywords: <String>['flutterio', 'beautiful apps'],
-  //   contentUrl: 'https://flutter.io',
-  //   childDirected: false,
-  //   // testDevices: <String>["9033810B9AD198E151CFEC2CB5073E2B"],
-  //   testDevices: <String>[],
-  // );
-  // InterstitialAd _interstitialAd;
-
-  // InterstitialAd createInterstitialAd(int index) {
-  //   return InterstitialAd(
-  //     // adUnitId: InterstitialAd.testAdUnitId,
-  //     adUnitId: adUnitId,
-  //     targetingInfo: targetingInfo,
-  //     listener: (MobileAdEvent event) {
-  //       print("InterstitialAd event $event");
-  //       if (event == MobileAdEvent.closed) {
-  //         print('Interstitial closed');
-  //         if (index != null) {
-  //           Navigator.pop(context);
-  //           String link = "http://www.ipu.ac.in${lists[index]["url"]}";
-  //           _launchURL(link);
-  //         }
-  //       } else if (event == MobileAdEvent.failedToLoad) {
-  //         if (index != null) {
-  //           Navigator.pop(context);
-  //           String link = "http://www.ipu.ac.in${lists[index]["url"]}";
-  //           _launchURL(link);
-  //         }
-  //       }
-  //     },
-  //   );
-  // }
-
-  @override
-  void initState() {
-    // FirebaseAdMob.instance.initialize(appId: appId);
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    // _timerForInter.cancel();
-    // _interstitialAd.dispose();
-    super.dispose();
-  }
-
   final databaseReference =
       FirebaseDatabase.instance.reference().child("notices");
   List lists = [];

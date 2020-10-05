@@ -69,7 +69,11 @@ The following packages are needed for the development of this application.
 - `firebase_database: 3.1.5` for notice database
 - `firebase_messaging: ^6.0.13` for push notifications
 - `url_launcher: ^5.4.5` for launching urls
-- `firebase_admob: ^0.9.3+4` for displaying ads in-app
+- `cupertino_icons: ^1.0.0` for cupertino icons
+- `share: ^0.6.5+2` for sharing links
+- `flutter_downloader: ^1.5.1` for downloading pdfs
+- `path_provider: ^1.6.18` for getting external storage
+- `permission_handler: ^5.0.1+1` fot external storage permission
 
 More details about these can be found in the [`pubspec.yaml`](https://github.com/Hash-Studios/ggsipu_notice/tree/master/pubspec.yaml) file.
 
