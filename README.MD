@@ -58,7 +58,7 @@ If you like what we do, and would want to help us continue doing it, consider sp
 
 GGSIPU Noticeboard app is now available on Google Play, so you can support us by giving a rating to the app.
 
-<a href='https://play.google.com/store/apps/details?id=com.hash.ggsipu_notice'><img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png' width=200 /></a>
+<a href='https://play.google.com/store/apps/details?id=com.hash.ggsipu_noticeboard'><img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png' width=200 /></a>
 
 
 ## Dependencies
@@ -79,7 +79,7 @@ More details about these can be found in the [`pubspec.yaml`](https://github.com
 
 ## Usage
 
-The application files for Android devices can be found on [Google Play Store](https://play.google.com/store/apps/details?id=com.hash.ggsipu_notice).
+The application files for Android devices can be found on [Google Play Store](https://play.google.com/store/apps/details?id=com.hash.ggsipu_noticeboard).
 
 More information about the releases can be found in the [Release](https://github.com/Hash-Studios/ggsipu_notice/releases) tab.
 
