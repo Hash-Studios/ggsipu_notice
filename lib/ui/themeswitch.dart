@@ -36,9 +36,13 @@ class ThemeSwitchButton extends StatelessWidget {
           }
         },
         icon: Icon(
-          NeumorphicTheme.isUsingDark(context)
+          NeumorphicTheme.of(context).value.current.baseColor ==
+                  Color(0xffdddddd)
               ? CupertinoIcons.brightness
-              : CupertinoIcons.brightness_solid,
+              : NeumorphicTheme.of(context).value.current.baseColor ==
+                      Color(0xff222222)
+                  ? CupertinoIcons.brightness
+                  : CupertinoIcons.brightness_solid,
         ),
         color: NeumorphicTheme.defaultTextColor(context),
       ),

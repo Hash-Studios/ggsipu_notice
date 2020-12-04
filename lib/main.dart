@@ -1,4 +1,5 @@
 import 'package:flutter/gestures.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:ggsipu_notice/core/push_nofitications.dart';
 import 'package:flutter/cupertino.dart';
@@ -51,6 +52,8 @@ void main() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(
+        SystemUiOverlayStyle(statusBarColor: Colors.transparent));
     final push = PushNotificationsManager();
     push.init();
     return CupertinoApp(
