@@ -1,13 +1,11 @@
 // This is a generated file; do not edit or check into version control.
 FLUTTER_ROOT=C:\flutter
-FLUTTER_APPLICATION_PATH=C:\Desktop\Ubuntu\ggsipu_notice
+FLUTTER_APPLICATION_PATH=D:\Desktop\Ubuntu\ggsipu_notice
 FLUTTER_TARGET=lib\main.dart
 FLUTTER_BUILD_DIR=build
 SYMROOT=${SOURCE_ROOT}/../build\ios
-OTHER_LDFLAGS=$(inherited) -framework Flutter
-FLUTTER_FRAMEWORK_DIR=C:\flutter\bin\cache\artifacts\engine\ios
-FLUTTER_BUILD_NAME=1.0.5
-FLUTTER_BUILD_NUMBER=8
+FLUTTER_BUILD_NAME=1.0.6
+FLUTTER_BUILD_NUMBER=9
 DART_OBFUSCATION=false
 TRACK_WIDGET_CREATION=false
 TREE_SHAKE_ICONS=false
