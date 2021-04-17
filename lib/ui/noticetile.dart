@@ -24,6 +24,7 @@ class NoticeTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(15.0),
       ),
       child: Neumorphic(
+        duration: Duration.zero,
         style: NeumorphicStyle(shape: NeumorphicShape.flat, depth: 4),
         boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(15)),
         child: ListTile(
