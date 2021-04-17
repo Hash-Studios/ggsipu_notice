@@ -5,7 +5,9 @@ import 'package:ggsipu_notice/core/push_nofitications.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
+import 'package:ggsipu_notice/keys.dart';
 import 'package:ggsipu_notice/screens/home.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 SharedPreferences prefs;
@@ -49,7 +51,34 @@ void main() async {
   runApp(new MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  Future<void> initOSN() async {
+    OneSignal.shared.setLogLevel(OSLogLevel.verbose, OSLogLevel.none);
+    OneSignal.shared.init(oneSignalAppID, iOSSettings: {
+      OSiOSSettings.autoPrompt: false,
+      OSiOSSettings.inAppLaunchUrl: false
+    });
+    OneSignal.shared
+        .setInFocusDisplayType(OSNotificationDisplayType.notification);
+    await OneSignal.shared.sendTags({
+      "new_ntoices": "true",
+    });
+
+    final Map<String, dynamic> tags = await OneSignal.shared.getTags();
+    debugPrint(tags.toString());
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    initOSN();
+  }
+
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(

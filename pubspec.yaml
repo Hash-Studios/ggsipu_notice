@@ -19,16 +19,17 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_neumorphic: ^1.0.7
-  firebase_database: 3.1.5
-  url_launcher: ^5.4.5
-  firebase_messaging: ^6.0.13
   cupertino_icons: ^1.0.0
-  share: 0.6.5+4
-  shared_preferences: ^0.5.12+4
+  firebase_database: 3.1.5
+  firebase_messaging: ^6.0.13
   flutter_downloader: ^1.5.1
+  flutter_neumorphic: ^1.0.7
+  onesignal_flutter: ^2.6.3
   path_provider: ^1.6.18
   permission_handler: ^5.0.1+1
+  share: 0.6.5+4
+  shared_preferences: ^0.5.12+4
+  url_launcher: ^5.4.5
 
 dev_dependencies:
   flutter_test:
