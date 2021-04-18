@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:ggsipu_notice/ui/widgets/about.dart';
-import 'package:ggsipu_notice/ui/widgets/actionModal.dart';
 import 'package:ggsipu_notice/ui/widgets/newNoticeTile.dart';
 import 'package:ggsipu_notice/ui/widgets/themeswitch.dart';
 import 'package:flutter/material.dart';
@@ -142,42 +141,21 @@ class _HomeScreenState extends State<HomeScreen> {
               return SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (BuildContext context, int index) {
+                    final bool download = snapshot.data.docs[index]['url']
+                        .toString()
+                        .toLowerCase()
+                        .contains(".pdf");
                     if (priorityCheck) {
                       if (snapshot.data.docs[index]['priority']) {
                         return NewNoticeTile(
+                          download: download,
                           document: snapshot.data.docs[index],
-                          func: () {
-                            final bool download = snapshot
-                                .data.docs[index]['url']
-                                .toString()
-                                .toLowerCase()
-                                .contains(".pdf");
-                            showCupertinoModalPopup(
-                              context: context,
-                              builder: (BuildContext context) => ActionModal(
-                                download: download,
-                                document: snapshot.data.docs[index],
-                              ),
-                            );
-                          },
                         );
                       }
                     } else {
                       return NewNoticeTile(
+                        download: download,
                         document: snapshot.data.docs[index],
-                        func: () {
-                          final bool download = snapshot.data.docs[index]['url']
-                              .toString()
-                              .toLowerCase()
-                              .contains(".pdf");
-                          showCupertinoModalPopup(
-                            context: context,
-                            builder: (BuildContext context) => ActionModal(
-                              download: download,
-                              document: snapshot.data.docs[index],
-                            ),
-                          );
-                        },
                       );
                     }
                     return Container();
