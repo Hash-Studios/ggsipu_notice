@@ -89,7 +89,7 @@ class _MyAppState extends State<MyApp> {
       theme: CupertinoThemeData(),
       home: NeumorphicTheme(
         usedTheme:
-            prefs.get('theme') == 0 ?? 1 ? UsedTheme.LIGHT : UsedTheme.DARK,
+            prefs.get('theme') == 0 ?? 0 ? UsedTheme.LIGHT : UsedTheme.DARK,
         theme: NeumorphicThemeData(
           baseColor: Color(0xFFDDDDDD),
           accentColor: Color(0x00CCCCCC),
@@ -100,7 +100,7 @@ class _MyAppState extends State<MyApp> {
           lightSource: LightSource.topLeft,
           depth: 8,
         ),
-        darkTheme: prefs.get('theme') == 1 ?? 1
+        darkTheme: prefs.get('theme') == 1 ?? 0
             ? NeumorphicThemeData(
                 baseColor: Color(0xFF222222),
                 accentColor: Color(0x00111111),
