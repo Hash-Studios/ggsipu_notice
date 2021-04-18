@@ -66,7 +66,7 @@ class _MyAppState extends State<MyApp> {
     OneSignal.shared
         .setInFocusDisplayType(OSNotificationDisplayType.notification);
     await OneSignal.shared.sendTags({
-      "new_ntoices": "true",
+      "new_notices": "true",
     });
 
     final Map<String, dynamic> tags = await OneSignal.shared.getTags();
