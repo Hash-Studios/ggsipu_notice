@@ -5,9 +5,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:ggsipu_notice/keys.dart';
-import 'package:ggsipu_notice/ui/pages/home.dart';
+import 'package:ggsipu_notice/ui/pages/homeScreen.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 SharedPreferences prefs;
 List<NeumorphicThemeData> themes = [
@@ -44,6 +45,7 @@ List<NeumorphicThemeData> themes = [
 ];
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   prefs = await SharedPreferences.getInstance();
   await FlutterDownloader.initialize(debug: true);
   GestureBinding.instance.resamplingEnabled = true;
@@ -119,7 +121,7 @@ class _MyAppState extends State<MyApp> {
                 lightSource: LightSource.topLeft,
                 depth: 8,
               ),
-        child: MyHomePage(title: 'Notices'),
+        child: HomeScreen(),
       ),
       debugShowCheckedModeBanner: false,
     );
