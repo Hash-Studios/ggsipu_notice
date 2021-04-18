@@ -1,4 +1,3 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter/cupertino.dart';
@@ -48,7 +47,6 @@ void main() async {
   await Firebase.initializeApp();
   prefs = await SharedPreferences.getInstance();
   await FlutterDownloader.initialize(debug: true);
-  GestureBinding.instance.resamplingEnabled = true;
   runApp(new MyApp());
 }
 
