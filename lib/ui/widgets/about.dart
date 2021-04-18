@@ -44,7 +44,7 @@ class AboutDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CupertinoAlertDialog(
-      title: new Text("GGSIPU Notices v1.0.6+9"),
+      title: new Text("GGSIPU Notices v1.1.0+10"),
       content: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
@@ -82,7 +82,7 @@ class AboutDialog extends StatelessWidget {
             ),
           ),
           Text(
-            "This is an unofficial app.",
+            "This is an unofficial app.\nPlease give the repository a star if you like this app. 👍",
             style: TextStyle(fontSize: 12),
           ),
         ],
