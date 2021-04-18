@@ -139,36 +139,52 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 );
               }
-              return SliverList(delegate: SliverChildBuilderDelegate(
-                (BuildContext context, int index) {
-                  if (priorityCheck) {
-                    if (snapshot.data.docs[index]['priority']) {
+              return SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (BuildContext context, int index) {
+                    if (priorityCheck) {
+                      if (snapshot.data.docs[index]['priority']) {
+                        return NewNoticeTile(
+                          document: snapshot.data.docs[index],
+                          func: () {
+                            final bool download = snapshot
+                                .data.docs[index]['url']
+                                .toString()
+                                .toLowerCase()
+                                .contains(".pdf");
+                            showCupertinoModalPopup(
+                              context: context,
+                              builder: (BuildContext context) => ActionModal(
+                                download: download,
+                                document: snapshot.data.docs[index],
+                              ),
+                            );
+                          },
+                        );
+                      }
+                    } else {
                       return NewNoticeTile(
                         document: snapshot.data.docs[index],
-                        func: () {},
+                        func: () {
+                          final bool download = snapshot.data.docs[index]['url']
+                              .toString()
+                              .toLowerCase()
+                              .contains(".pdf");
+                          showCupertinoModalPopup(
+                            context: context,
+                            builder: (BuildContext context) => ActionModal(
+                              download: download,
+                              document: snapshot.data.docs[index],
+                            ),
+                          );
+                        },
                       );
                     }
-                  } else {
-                    return NewNoticeTile(
-                      document: snapshot.data.docs[index],
-                      func: () {
-                        final bool download = snapshot.data.docs[index]['url']
-                            .toString()
-                            .toLowerCase()
-                            .contains(".pdf");
-                        showCupertinoModalPopup(
-                          context: context,
-                          builder: (BuildContext context) => ActionModal(
-                            download: download,
-                            document: snapshot.data.docs[index],
-                          ),
-                        );
-                      },
-                    );
-                  }
-                  return Container();
-                },
-              ));
+                    return Container();
+                  },
+                  childCount: snapshot.data.docs.length,
+                ),
+              );
             },
           )
         ],
