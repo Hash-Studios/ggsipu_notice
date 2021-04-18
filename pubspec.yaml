@@ -21,7 +21,6 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.0
   firebase_database: 3.1.5
-  firebase_messaging: ^6.0.13
   flutter_downloader: ^1.5.1
   flutter_neumorphic: ^1.0.7
   onesignal_flutter: ^2.6.3

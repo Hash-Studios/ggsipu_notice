@@ -1,7 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
-import 'package:ggsipu_notice/core/push_nofitications.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
@@ -83,8 +82,6 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(
         SystemUiOverlayStyle(statusBarColor: Colors.transparent));
-    final push = PushNotificationsManager();
-    push.init();
     return CupertinoApp(
       title: 'GGSIPU Notices',
       theme: CupertinoThemeData(),
