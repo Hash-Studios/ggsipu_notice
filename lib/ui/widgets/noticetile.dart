@@ -72,7 +72,7 @@ class NoticeTile extends StatelessWidget {
                     color: Colors.red[400], size: 30.0),
               ),
               title: Text(
-                document.data()["title"],
+                (document.data() as Map)["title"],
                 style: TextStyle(
                   color: prefs.get('theme') == 0
                       ? Color(0xFF333333)
@@ -93,7 +93,7 @@ class NoticeTile extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(top: 2.0),
                     child: Text(
-                      " ${document.data()["date"]}",
+                      " ${(document.data() as Map)["date"]}",
                       style: TextStyle(
                         color: prefs.get('theme') == 0
                             ? Color(0xFF333333).withOpacity(0.8)
@@ -118,7 +118,7 @@ class NoticeTile extends StatelessWidget {
                     onPressed: () {
                       Navigator.pop(context);
                       String link =
-                          "http://www.ipu.ac.in${document.data()["url"]}";
+                          "http://www.ipu.ac.in${(document.data() as Map)["url"]}";
                       _launchURL(link);
                     },
                   ),
@@ -132,7 +132,7 @@ class NoticeTile extends StatelessWidget {
                         await Permission.storage.request();
                       }
                       String link =
-                          "http://www.ipu.ac.in${document.data()["url"]}";
+                          "http://www.ipu.ac.in${(document.data() as Map)["url"]}";
                       String _localPath = (await _findLocalPath()) + '/Notices';
                       final savedDir = Directory(_localPath);
                       bool hasExisted = await savedDir.exists();
@@ -147,7 +147,7 @@ class NoticeTile extends StatelessWidget {
                       final taskId = await FlutterDownloader.enqueue(
                         url: link,
                         fileName:
-                            '${document.data()["title"].toString().replaceAll("/", "")} $name.pdf',
+                            '${(document.data() as Map)["title"].toString().replaceAll("/", "")} $name.pdf',
                         savedDir: _localPath,
                         showNotification: true,
                         openFileFromNotification: true,
@@ -161,8 +161,9 @@ class NoticeTile extends StatelessWidget {
                     onPressed: () {
                       Navigator.pop(context);
                       String link =
-                          "http://www.ipu.ac.in${document.data()["url"]}";
-                      Share.share("$link\n${document.data()["title"]}");
+                          "http://www.ipu.ac.in${(document.data() as Map)["url"]}";
+                      Share.share(
+                          "$link\n${(document.data() as Map)["title"]}");
                     },
                   )
                 ]
@@ -174,7 +175,7 @@ class NoticeTile extends StatelessWidget {
                     onPressed: () {
                       Navigator.pop(context);
                       String link =
-                          "http://www.ipu.ac.in${document.data()["url"]}";
+                          "http://www.ipu.ac.in${(document.data() as Map)["url"]}";
                       _launchURL(link);
                     },
                   ),
@@ -184,8 +185,9 @@ class NoticeTile extends StatelessWidget {
                     onPressed: () {
                       Navigator.pop(context);
                       String link =
-                          "http://www.ipu.ac.in${document.data()["url"]}";
-                      Share.share("$link\n${document.data()["title"]}");
+                          "http://www.ipu.ac.in${(document.data() as Map)["url"]}";
+                      Share.share(
+                          "$link\n${(document.data() as Map)["title"]}");
                     },
                   )
                 ],
@@ -215,7 +217,8 @@ class NoticeTile extends StatelessWidget {
                   debugPrint("Long Press");
                 },
                 onTap: () {
-                  String link = "http://www.ipu.ac.in${document.data()["url"]}";
+                  String link =
+                      "http://www.ipu.ac.in${(document.data() as Map)["url"]}";
                   _launchURL(link);
                 },
                 contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
@@ -231,7 +234,7 @@ class NoticeTile extends StatelessWidget {
                       color: Colors.red[400], size: 30.0),
                 ),
                 title: Text(
-                  document.data()["title"],
+                  (document.data() as Map)["title"],
                   style: TextStyle(
                     color: NeumorphicTheme.defaultTextColor(context),
                     fontWeight: FontWeight.w600,
@@ -248,7 +251,7 @@ class NoticeTile extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.only(top: 2.0),
                       child: Text(
-                        " ${document.data()["date"]}",
+                        " ${(document.data() as Map)["date"]}",
                         style: TextStyle(
                           color: NeumorphicTheme.defaultTextColor(context)
                               .withOpacity(0.8),
