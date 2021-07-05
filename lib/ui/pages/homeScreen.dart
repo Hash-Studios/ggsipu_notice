@@ -13,20 +13,41 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool priorityCheck = false;
+  int limit = 8;
+  bool loading = false;
+  ScrollController controller = ScrollController();
+  @override
+  void initState() {
+    super.initState();
+    controller.addListener(_scrollListener);
+  }
+
+  void _scrollListener() {
+    if (controller.position.pixels == controller.position.maxScrollExtent) {
+      print("at the end of list");
+      setState(() {
+        limit = limit + 8;
+      });
+      print(limit);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     Query notices = FirebaseFirestore.instance
         .collection('notices')
-        .orderBy('createdAt', descending: true);
+        .orderBy('createdAt', descending: true)
+        .limit(limit);
     return CupertinoPageScaffold(
       backgroundColor: NeumorphicTheme.baseColor(context),
       child: CustomScrollView(
         physics: const BouncingScrollPhysics(),
+        controller: controller,
         slivers: [
           CupertinoSliverNavigationBar(
             leading: AboutButton(),
             trailing: ThemeSwitchButton(),
+            border: null,
             automaticallyImplyLeading: false,
             padding: EdgeInsetsDirectional.zero,
             largeTitle: Text(
@@ -39,6 +60,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           CupertinoSliverRefreshControl(
             onRefresh: () {
+              setState(() {
+                limit = 8;
+              });
               return Future<void>.delayed(const Duration(seconds: 1))
                 ..then<void>((_) {});
             },
@@ -93,6 +117,11 @@ class _HomeScreenState extends State<HomeScreen> {
             stream: notices.snapshots(),
             builder:
                 (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                loading = true;
+              } else {
+                loading = false;
+              }
               if (snapshot.hasError) {
                 return SliverList(
                   delegate: SliverChildBuilderDelegate(
@@ -103,9 +132,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           height: MediaQuery.of(context).size.height - 200.0,
                           width: MediaQuery.of(context).size.width,
                           child: Center(
-                            child: CupertinoActivityIndicator(
-                              animating: true,
-                              radius: 20,
+                            child: Icon(
+                              CupertinoIcons.multiply_circle,
+                              color: NeumorphicTheme.defaultTextColor(context),
                             ),
                           ),
                         ),
@@ -115,52 +144,64 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 );
               }
-
-              if (snapshot.connectionState == ConnectionState.waiting) {
+              if (snapshot.hasData) {
                 return SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (BuildContext context, int index) {
-                      return Material(
-                        color: Colors.transparent,
-                        child: SizedBox(
-                          height: MediaQuery.of(context).size.height - 200.0,
-                          width: MediaQuery.of(context).size.width,
+                      if (index == snapshot.data.docs.length) {
+                        return SizedBox(
+                          height: 100,
+                          width: 100,
                           child: Center(
-                            child: CupertinoActivityIndicator(
-                              animating: true,
-                              radius: 20,
-                            ),
-                          ),
-                        ),
-                      );
+                              child: loading
+                                  ? CupertinoActivityIndicator(
+                                      animating: true,
+                                      radius: 14,
+                                    )
+                                  : Container()),
+                        );
+                      }
+                      final bool download = snapshot.data.docs[index]['url']
+                          .toString()
+                          .toLowerCase()
+                          .contains(".pdf");
+                      if (priorityCheck) {
+                        if (snapshot.data.docs[index]['priority']) {
+                          return NoticeTile(
+                            download: download,
+                            document: snapshot.data.docs[index],
+                          );
+                        }
+                      } else {
+                        return NoticeTile(
+                          download: download,
+                          document: snapshot.data.docs[index],
+                        );
+                      }
+                      return Container();
                     },
-                    childCount: 1,
+                    childCount: snapshot.data.docs.length + 1,
                   ),
                 );
               }
               return SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (BuildContext context, int index) {
-                    final bool download = snapshot.data.docs[index]['url']
-                        .toString()
-                        .toLowerCase()
-                        .contains(".pdf");
-                    if (priorityCheck) {
-                      if (snapshot.data.docs[index]['priority']) {
-                        return NoticeTile(
-                          download: download,
-                          document: snapshot.data.docs[index],
-                        );
-                      }
-                    } else {
-                      return NoticeTile(
-                        download: download,
-                        document: snapshot.data.docs[index],
-                      );
-                    }
-                    return Container();
+                    return Material(
+                      color: Colors.transparent,
+                      child: SizedBox(
+                        height: MediaQuery.of(context).size.height - 200.0,
+                        width: MediaQuery.of(context).size.width,
+                        child: Center(
+                          child: CupertinoActivityIndicator(
+                            animating: true,
+                            radius: 20,
+                          ),
+                        ),
+                      ),
+                    );
                   },
-                  childCount: snapshot.data.docs.length,
+                  childCount: 1,
                 ),
               );
             },
