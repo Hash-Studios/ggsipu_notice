@@ -1,11 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:ip_notices/models/notice.dart';
 import 'package:ip_notices/notifiers/firestore_notifier.dart';
 import 'package:ip_notices/services/logger.dart';
 import 'package:ip_notices/widgets/about_button.dart';
 import 'package:ip_notices/widgets/notice_tile.dart';
-import 'package:ip_notices/widgets/theme_switch.dart';
 import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
@@ -16,7 +16,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  bool loading = false;
   ScrollController controller = ScrollController();
   @override
   void initState() {
@@ -38,26 +37,14 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+    ));
     return CupertinoPageScaffold(
-      backgroundColor: Colors.white,
       child: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         controller: controller,
         slivers: [
-          const CupertinoSliverNavigationBar(
-            leading: AboutButton(),
-            trailing: ThemeSwitchButton(),
-            border: null,
-            automaticallyImplyLeading: false,
-            padding: EdgeInsetsDirectional.zero,
-            largeTitle: Text(
-              'Notices',
-              style: TextStyle(
-                color: Colors.black,
-              ),
-            ),
-            backgroundColor: Colors.transparent,
-          ),
           CupertinoSliverRefreshControl(
             onRefresh: () {
               context.read<FirestoreNotifier>().initNoticeStream();
@@ -65,83 +52,80 @@ class _HomePageState extends State<HomePage> {
                 ..then<void>((_) {});
             },
           ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (BuildContext context, int index) {
-                return Material(
-                  color: Colors.transparent,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 5, 8),
-                    child: Row(
-                      children: [
-                        Text(
-                          context.watch<FirestoreNotifier>().priorityCheck
-                              ? "Priority"
-                              : "Latest",
-                          style: TextStyle(
-                            color: Colors.black.withOpacity(0.8),
-                            fontWeight: FontWeight.w600,
-                            fontSize: 20,
-                          ),
-                        ),
-                        const Spacer(),
-                        ClipOval(
-                          child: Material(
-                            elevation: 0,
-                            color: Colors.transparent,
-                            borderRadius: BorderRadius.circular(500),
-                            child: IconButton(
-                              icon: context
-                                      .watch<FirestoreNotifier>()
-                                      .priorityCheck
-                                  ? const Icon(CupertinoIcons.star)
-                                  : const Icon(CupertinoIcons.time),
-                              color: Colors.black.withOpacity(0.8),
-                              onPressed: () {
-                                context
-                                    .read<FirestoreNotifier>()
-                                    .togglePriorityCheck();
-                              },
-                            ),
-                          ),
-                        )
-                      ],
+          const CupertinoSliverNavigationBar(
+            brightness: Brightness.light,
+            leading: AboutButton(),
+            automaticallyImplyLeading: false,
+            padding: EdgeInsetsDirectional.zero,
+            stretch: true,
+            largeTitle: Text(
+              'Notices',
+            ),
+            backgroundColor: Colors.transparent,
+          ),
+          SliverToBoxAdapter(
+            child: Material(
+              color: Colors.transparent,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 5, 8),
+                child: Row(
+                  children: [
+                    Text(
+                      context.watch<FirestoreNotifier>().priorityCheck
+                          ? "Priority"
+                          : "Latest",
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 20,
+                      ),
                     ),
-                  ),
-                );
-              },
-              childCount: 1,
+                    const Spacer(),
+                    ClipOval(
+                      child: Material(
+                        elevation: 0,
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(500),
+                        child: IconButton(
+                          icon: context.watch<FirestoreNotifier>().priorityCheck
+                              ? const Icon(CupertinoIcons.star)
+                              : const Icon(CupertinoIcons.time),
+                          color: Theme.of(context)
+                              .textTheme
+                              .bodyText1
+                              ?.color
+                              ?.withOpacity(0.8),
+                          onPressed: () {
+                            context
+                                .read<FirestoreNotifier>()
+                                .togglePriorityCheck();
+                          },
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              ),
             ),
           ),
           StreamBuilder<List<Notice>>(
             stream: context.watch<FirestoreNotifier>().noticesStream,
             builder:
                 (BuildContext context, AsyncSnapshot<List<Notice>> snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                loading = true;
-              } else {
-                loading = false;
-              }
               if (snapshot.hasError) {
                 logger.e(snapshot.error);
-                return SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (BuildContext context, int index) {
-                      return Material(
-                        color: Colors.transparent,
-                        child: SizedBox(
-                          height: MediaQuery.of(context).size.height - 200.0,
-                          width: MediaQuery.of(context).size.width,
-                          child: Center(
-                            child: Icon(
-                              CupertinoIcons.multiply_circle,
-                              color: Colors.black,
-                            ),
-                          ),
+                return SliverToBoxAdapter(
+                  child: Material(
+                    color: Colors.transparent,
+                    child: SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.8,
+                      width: MediaQuery.of(context).size.width,
+                      child: const Center(
+                        child: Icon(
+                          CupertinoIcons.multiply_circle,
+                          color: Colors.red,
                         ),
-                      );
-                    },
-                    childCount: 1,
+                      ),
+                    ),
                   ),
                 );
               }
@@ -149,17 +133,15 @@ class _HomePageState extends State<HomePage> {
                 return SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (BuildContext context, int index) {
-                      if (index == snapshot.data?.length) {
-                        return SizedBox(
+                      if (index == (snapshot.data?.length ?? 0) - 1) {
+                        return const SizedBox(
                           height: 100,
                           width: 100,
                           child: Center(
-                              child: loading
-                                  ? CupertinoActivityIndicator(
-                                      animating: true,
-                                      radius: 14,
-                                    )
-                                  : Container()),
+                              child: CupertinoActivityIndicator(
+                            animating: true,
+                            radius: 14,
+                          )),
                         );
                       }
                       final bool download = snapshot.data?[index].url
@@ -167,22 +149,12 @@ class _HomePageState extends State<HomePage> {
                               .toLowerCase()
                               .contains(".pdf") ??
                           false;
-                      if (context.watch<FirestoreNotifier>().priorityCheck) {
-                        if (snapshot.data?[index].priority ?? false) {
-                          return NoticeTile(
-                            download: download,
-                            document: snapshot.data?[index],
-                          );
-                        }
-                      } else {
-                        return NoticeTile(
-                          download: download,
-                          document: snapshot.data?[index],
-                        );
-                      }
-                      return Container();
+                      return NoticeTile(
+                        download: download,
+                        document: snapshot.data?[index],
+                      );
                     },
-                    childCount: snapshot.data?.length ?? 0 + 1,
+                    childCount: snapshot.data?.length ?? 0,
                   ),
                 );
               }
@@ -192,9 +164,9 @@ class _HomePageState extends State<HomePage> {
                     return Material(
                       color: Colors.transparent,
                       child: SizedBox(
-                        height: MediaQuery.of(context).size.height - 200.0,
+                        height: MediaQuery.of(context).size.height * 0.8,
                         width: MediaQuery.of(context).size.width,
-                        child: Center(
+                        child: const Center(
                           child: CupertinoActivityIndicator(
                             animating: true,
                             radius: 20,

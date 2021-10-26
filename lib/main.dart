@@ -45,7 +45,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const CupertinoApp(
       title: 'GGSIPU Notices',
-      theme: CupertinoThemeData(),
       home: HomePage(),
     );
   }
