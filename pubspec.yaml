@@ -34,11 +34,13 @@ dependencies:
     sdk: flutter
   flutter_displaymode: ^0.3.2
   flutter_downloader: ^1.7.1
+  get_it: ^7.2.0
   json_annotation: ^4.3.0
   logger: ^1.1.0
   onesignal_flutter: ^3.2.3
   path_provider: ^2.0.5
   permission_handler: ^8.2.5
+  provider: ^6.0.1
   share_plus: ^3.0.4
   shared_preferences: ^2.0.8
   url_launcher: ^6.0.12
