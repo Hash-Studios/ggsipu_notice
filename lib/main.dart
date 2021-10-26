@@ -4,21 +4,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:ip_notices/keys.dart';
+import 'package:ip_notices/notifiers/firestore_notifier.dart';
 import 'package:ip_notices/pages/home_page.dart';
+import 'package:ip_notices/services/locator.dart';
 import 'package:ip_notices/services/logger.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 late SharedPreferences prefs;
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  await setupLocator();
   await Firebase.initializeApp();
   await setRefreshRate();
   prefs = await SharedPreferences.getInstance();
   await FlutterDownloader.initialize();
   oneSignalSetup();
-  runApp(const MyApp());
+  runApp(MultiProvider(providers: [
+    ChangeNotifierProvider<FirestoreNotifier>(
+        create: (_) => FirestoreNotifier()),
+  ], child: const MyApp()));
 }
 
 void oneSignalSetup() {
