@@ -4,8 +4,9 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
-import 'package:ip_notices/main.dart';
+import 'package:intl/intl.dart';
 import 'package:ip_notices/models/notice.dart';
+import 'package:ip_notices/services/logger.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
@@ -36,220 +37,174 @@ class NoticeTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: ThemeData(
-        splashColor: Colors.transparent,
-        highlightColor: Colors.transparent,
-      ),
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
-        child: CupertinoContextMenu(
-          previewBuilder: (context, animation, child) => Card(
-            color: prefs.get('theme') == 0
-                ? Color(0xFFDDDDDD)
-                : prefs.get('theme') == 1
-                    ? Color(0xFF222222)
-                    : Colors.black,
-            elevation: 0,
-            margin: EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15.0),
-            ),
-            child: ListTile(
-              hoverColor: Colors.transparent,
-              focusColor: Colors.transparent,
-              contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-              leading: Container(
-                padding: EdgeInsets.only(right: 12.0),
-                decoration: BoxDecoration(
-                    border: Border(
-                        right: BorderSide(
-                            width: 1.0, color: Colors.black.withOpacity(0.1)))),
-                child: Icon(CupertinoIcons.doc_text,
-                    color: Colors.red[400], size: 30.0),
-              ),
-              title: Text(
-                (document?.title ?? ''),
+    return CupertinoContextMenu(
+      key: ValueKey(document?.title ?? ''),
+      previewBuilder: (context, animation, child) => Card(
+        color: Colors.white,
+        margin: const EdgeInsets.all(0),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        child: ListTile(
+          enableFeedback: true,
+          onTap: () {
+            String link = "http://www.ipu.ac.in${document?.url}";
+            _launchURL(link);
+          },
+          contentPadding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+          leading: CircleAvatar(
+              backgroundColor: HexColor.fromHex(
+                  document?.color ?? Colors.grey.withOpacity(0.3).toHex()),
+              child: Text(
+                document?.title[0] ?? '',
                 style: TextStyle(
-                  color: prefs.get('theme') == 0
-                      ? Color(0xFF333333)
-                      : prefs.get('theme') == 1
-                          ? Color(0xFFDDDDDD)
-                          : Colors.white,
+                  color: Colors.black.withOpacity(0.7),
                   fontWeight: FontWeight.w600,
-                  fontSize: 15,
+                  fontSize: 16,
                 ),
-              ),
-              subtitle: Row(
-                children: <Widget>[
-                  Icon(
-                    Icons.calendar_today,
-                    color: Colors.yellow[400],
-                    size: 12,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 2.0),
-                    child: Text(
-                      " ${document?.date}",
-                      style: TextStyle(
-                        color: prefs.get('theme') == 0
-                            ? Color(0xFF333333).withOpacity(0.8)
-                            : prefs.get('theme') == 1
-                                ? Color(0xFFDDDDDD).withOpacity(0.8)
-                                : Colors.white.withOpacity(0.8),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w300,
-                      ),
-                    ),
-                  )
-                ],
-              ),
+              )),
+          title: Text(
+            document?.title ?? '',
+            maxLines: 10,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Colors.black,
+              fontSize: 14,
             ),
           ),
-          actions: download
-              ? [
-                  CupertinoContextMenuAction(
-                    child: Text("View Notice"),
-                    isDefaultAction: true,
-                    trailingIcon: CupertinoIcons.doc_text,
-                    onPressed: () {
-                      Navigator.pop(context);
-                      String link = "http://www.ipu.ac.in${document?.url}";
-                      _launchURL(link);
-                    },
-                  ),
-                  CupertinoContextMenuAction(
-                    child: Text("Download"),
-                    trailingIcon: CupertinoIcons.cloud_download,
-                    onPressed: () async {
-                      Navigator.pop(context);
-                      var status = await Permission.storage.status;
-                      if (!status.isGranted) {
-                        await Permission.storage.request();
-                      }
-                      String link = "http://www.ipu.ac.in${document?.url}";
-                      String _localPath = (await _findLocalPath()) + '/Notices';
-                      final savedDir = Directory(_localPath);
-                      bool hasExisted = await savedDir.exists();
-                      if (!hasExisted) {
-                        savedDir.create();
-                      }
-                      final f = Random();
-                      String name = "";
-                      for (int i = 0; i < 10; i++) {
-                        name = name + f.nextInt(9).toString();
-                      }
-                      final taskId = await FlutterDownloader.enqueue(
-                        url: link,
-                        fileName:
-                            '${document?.title.toString().replaceAll("/", "")} $name.pdf',
-                        savedDir: _localPath,
-                        showNotification: true,
-                        openFileFromNotification: true,
-                      );
-                      print(_localPath);
-                    },
-                  ),
-                  CupertinoContextMenuAction(
-                    child: Text("Share"),
-                    trailingIcon: CupertinoIcons.share,
-                    onPressed: () {
-                      Navigator.pop(context);
-                      String link = "http://www.ipu.ac.in${document?.url}";
-                      Share.share("$link\n${document?.title}");
-                    },
-                  )
-                ]
-              : [
-                  CupertinoContextMenuAction(
-                    child: Text("View Notice"),
-                    isDefaultAction: true,
-                    trailingIcon: CupertinoIcons.doc_text,
-                    onPressed: () {
-                      Navigator.pop(context);
-                      String link = "http://www.ipu.ac.in${document?.url}";
-                      _launchURL(link);
-                    },
-                  ),
-                  CupertinoContextMenuAction(
-                    child: Text("Share"),
-                    trailingIcon: CupertinoIcons.share,
-                    onPressed: () {
-                      Navigator.pop(context);
-                      String link = "http://www.ipu.ac.in${document?.url}";
-                      Share.share("$link\n${document?.title}");
-                    },
-                  )
-                ],
-          child: Card(
-            color: Colors.transparent,
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15.0),
+          trailing: Text(
+            "${document?.date.split('-')[0]} ${DateFormat('MMM').format(DateTime(0, int.parse(document?.date.split('-')[1] ?? '0')))}",
+            style: TextStyle(
+              color: Colors.black.withOpacity(0.8),
+              fontSize: 12,
+              fontWeight: FontWeight.w300,
             ),
-            child: Container(
-              // duration: Duration.zero,
-              // style: NeumorphicStyle(
-              //   shape: NeumorphicShape.flat,
-              //   depth: 4,
-              //   color: prefs.get('theme') == 0
-              //       ? Color(0xFFDDDDDD)
-              //       : prefs.get('theme') == 1
-              //           ? Color(0xFF222222)
-              //           : Colors.black,
-              // ),
-
-              // boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(15)),
-              child: ListTile(
-                enableFeedback: true,
-                hoverColor: Colors.transparent,
-                focusColor: Colors.transparent,
-                onLongPress: () {
-                  debugPrint("Long Press");
-                },
-                onTap: () {
+          ),
+        ),
+      ),
+      actions: download
+          ? [
+              CupertinoContextMenuAction(
+                child: Text("View Notice"),
+                isDefaultAction: true,
+                trailingIcon: CupertinoIcons.doc_text,
+                onPressed: () {
+                  Navigator.pop(context);
                   String link = "http://www.ipu.ac.in${document?.url}";
                   _launchURL(link);
                 },
-                contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-                leading: Container(
-                  padding: EdgeInsets.only(right: 12.0),
-                  decoration: BoxDecoration(
-                      border: Border(
-                          right: BorderSide(
-                              width: 1.0,
-                              color: Colors.black.withOpacity(0.1)))),
-                  child: Icon(CupertinoIcons.doc_text,
-                      color: Colors.red[400], size: 30.0),
-                ),
-                title: Text(
-                  document?.title ?? '',
+              ),
+              CupertinoContextMenuAction(
+                child: Text("Download"),
+                trailingIcon: CupertinoIcons.cloud_download,
+                onPressed: () async {
+                  Navigator.pop(context);
+                  var status = await Permission.storage.status;
+                  if (!status.isGranted) {
+                    await Permission.storage.request();
+                  }
+                  String link = "http://www.ipu.ac.in${document?.url}";
+                  String _localPath = (await _findLocalPath()) + '/Notices';
+                  final savedDir = Directory(_localPath);
+                  bool hasExisted = await savedDir.exists();
+                  if (!hasExisted) {
+                    savedDir.create();
+                  }
+                  final f = Random();
+                  String name = "";
+                  for (int i = 0; i < 10; i++) {
+                    name = name + f.nextInt(9).toString();
+                  }
+                  final taskId = await FlutterDownloader.enqueue(
+                    url: link,
+                    fileName:
+                        '${document?.title.toString().replaceAll("/", "")} $name.pdf',
+                    savedDir: _localPath,
+                    showNotification: true,
+                    openFileFromNotification: true,
+                  );
+                  print(_localPath);
+                },
+              ),
+              CupertinoContextMenuAction(
+                child: Text("Share"),
+                trailingIcon: CupertinoIcons.share,
+                onPressed: () {
+                  Navigator.pop(context);
+                  String link = "http://www.ipu.ac.in${document?.url}";
+                  Share.share("$link\n${document?.title}");
+                },
+              )
+            ]
+          : [
+              CupertinoContextMenuAction(
+                child: Text("View Notice"),
+                isDefaultAction: true,
+                trailingIcon: CupertinoIcons.doc_text,
+                onPressed: () {
+                  Navigator.pop(context);
+                  String link = "http://www.ipu.ac.in${document?.url}";
+                  _launchURL(link);
+                },
+              ),
+              CupertinoContextMenuAction(
+                child: Text("Share"),
+                trailingIcon: CupertinoIcons.share,
+                onPressed: () {
+                  Navigator.pop(context);
+                  String link = "http://www.ipu.ac.in${document?.url}";
+                  Share.share("$link\n${document?.title}");
+                },
+              )
+            ],
+      child: Card(
+        color: Colors.white,
+        margin: const EdgeInsets.all(0),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(0.0),
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+              border: Border(
+                  bottom: BorderSide(color: Colors.grey.shade300, width: 0.5))),
+          child: ListTile(
+            enableFeedback: true,
+            onLongPress: () {
+              logger.d("Long Press");
+            },
+            onTap: () {
+              String link = "http://www.ipu.ac.in${document?.url}";
+              _launchURL(link);
+            },
+            contentPadding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+            leading: CircleAvatar(
+                backgroundColor: HexColor.fromHex(
+                    document?.color ?? Colors.grey.withOpacity(0.3).toHex()),
+                child: Text(
+                  document?.title[0] ?? '',
                   style: TextStyle(
-                    color: Colors.black,
+                    color: Colors.black.withOpacity(0.7),
                     fontWeight: FontWeight.w600,
-                    fontSize: 15,
+                    fontSize: 16,
                   ),
-                ),
-                subtitle: Row(
-                  children: <Widget>[
-                    Icon(
-                      Icons.calendar_today,
-                      color: Colors.yellow[400],
-                      size: 12,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2.0),
-                      child: Text(
-                        " ${document?.date}",
-                        style: TextStyle(
-                          color: Colors.black.withOpacity(0.8),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w300,
-                        ),
-                      ),
-                    )
-                  ],
-                ),
+                )),
+            title: Text(
+              document?.title ?? '',
+              maxLines: 10,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 14,
+              ),
+            ),
+            trailing: Text(
+              "${document?.date.split('-')[0]} ${DateFormat('MMM').format(DateTime(0, int.parse(document?.date.split('-')[1] ?? '0')))}",
+              style: TextStyle(
+                color: Colors.black.withOpacity(0.8),
+                fontSize: 12,
+                fontWeight: FontWeight.w300,
               ),
             ),
           ),

@@ -9,7 +9,14 @@ part of 'notice.dart';
 Notice _$NoticeFromJson(Map<String, dynamic> json) {
   $checkKeys(
     json,
-    requiredKeys: const ['title', 'url', 'date', 'createdAt', 'priority'],
+    requiredKeys: const [
+      'title',
+      'url',
+      'date',
+      'createdAt',
+      'priority',
+      'color'
+    ],
   );
   return Notice(
     title: json['title'] as String,
@@ -18,6 +25,7 @@ Notice _$NoticeFromJson(Map<String, dynamic> json) {
     createdAt:
         const TimestampConverter().fromJson(json['createdAt'] as Timestamp),
     priority: json['priority'] as bool,
+    color: json['color'] as String,
   );
 }
 
@@ -27,4 +35,5 @@ Map<String, dynamic> _$NoticeToJson(Notice instance) => <String, dynamic>{
       'date': instance.date,
       'createdAt': const TimestampConverter().toJson(instance.createdAt),
       'priority': instance.priority,
+      'color': instance.color,
     };
