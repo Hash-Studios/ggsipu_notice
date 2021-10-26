@@ -1,8 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'notice.g.dart';
 
-@JsonSerializable(explicitToJson: true, fieldRename: FieldRename.snake)
+@JsonSerializable(explicitToJson: true)
 class Notice {
   @JsonKey(required: true)
   String title;
@@ -11,6 +12,7 @@ class Notice {
   @JsonKey(required: true)
   String date;
   @JsonKey(required: true)
+  @TimestampConverter()
   DateTime createdAt;
   @JsonKey(required: true)
   bool priority;
@@ -25,4 +27,16 @@ class Notice {
 
   factory Notice.fromJson(Map<String, dynamic> json) => _$NoticeFromJson(json);
   Map<String, dynamic> toJson() => _$NoticeToJson(this);
+}
+
+class TimestampConverter implements JsonConverter<DateTime, Timestamp> {
+  const TimestampConverter();
+
+  @override
+  DateTime fromJson(Timestamp timestamp) {
+    return timestamp.toDate();
+  }
+
+  @override
+  Timestamp toJson(DateTime date) => Timestamp.fromDate(date);
 }
