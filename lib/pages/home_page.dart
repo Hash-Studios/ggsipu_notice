@@ -1,8 +1,12 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:ip_notices/models/notice.dart';
+import 'package:ip_notices/notifiers/firestore_notifier.dart';
+import 'package:ip_notices/services/logger.dart';
 import 'package:ip_notices/widgets/about_button.dart';
 import 'package:ip_notices/widgets/notice_tile.dart';
+import 'package:ip_notices/widgets/theme_switch.dart';
+import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -12,41 +16,37 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  bool priorityCheck = false;
-  int limit = 8;
   bool loading = false;
   ScrollController controller = ScrollController();
   @override
   void initState() {
     super.initState();
+    Future.delayed(const Duration())
+        .then((value) => context.read<FirestoreNotifier>().initNoticeStream());
     controller.addListener(_scrollListener);
   }
 
   void _scrollListener() {
     if (controller.position.pixels == controller.position.maxScrollExtent) {
-      print("at the end of list");
+      logger.d("at the end of list");
       setState(() {
-        limit = limit + 8;
+        context.read<FirestoreNotifier>().loadMore();
       });
-      print(limit);
+      logger.i(context.read<FirestoreNotifier>().limit);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    Query notices = FirebaseFirestore.instance
-        .collection('notices')
-        .orderBy('createdAt', descending: true)
-        .limit(limit);
     return CupertinoPageScaffold(
       backgroundColor: Colors.white,
       child: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         controller: controller,
         slivers: [
-          CupertinoSliverNavigationBar(
+          const CupertinoSliverNavigationBar(
             leading: AboutButton(),
-            // trailing: ThemeSwitchButton(),
+            trailing: ThemeSwitchButton(),
             border: null,
             automaticallyImplyLeading: false,
             padding: EdgeInsetsDirectional.zero,
@@ -56,13 +56,11 @@ class _HomePageState extends State<HomePage> {
                 color: Colors.black,
               ),
             ),
-            backgroundColor: Colors.white,
+            backgroundColor: Colors.transparent,
           ),
           CupertinoSliverRefreshControl(
             onRefresh: () {
-              setState(() {
-                limit = 8;
-              });
+              context.read<FirestoreNotifier>().initNoticeStream();
               return Future<void>.delayed(const Duration(seconds: 1))
                 ..then<void>((_) {});
             },
@@ -77,28 +75,32 @@ class _HomePageState extends State<HomePage> {
                     child: Row(
                       children: [
                         Text(
-                          priorityCheck ? "Priority" : "Latest",
+                          context.watch<FirestoreNotifier>().priorityCheck
+                              ? "Priority"
+                              : "Latest",
                           style: TextStyle(
                             color: Colors.black.withOpacity(0.8),
                             fontWeight: FontWeight.w600,
                             fontSize: 20,
                           ),
                         ),
-                        Spacer(),
+                        const Spacer(),
                         ClipOval(
                           child: Material(
                             elevation: 0,
                             color: Colors.transparent,
                             borderRadius: BorderRadius.circular(500),
                             child: IconButton(
-                              icon: priorityCheck
-                                  ? Icon(CupertinoIcons.star)
-                                  : Icon(CupertinoIcons.time),
+                              icon: context
+                                      .watch<FirestoreNotifier>()
+                                      .priorityCheck
+                                  ? const Icon(CupertinoIcons.star)
+                                  : const Icon(CupertinoIcons.time),
                               color: Colors.black.withOpacity(0.8),
                               onPressed: () {
-                                setState(() {
-                                  priorityCheck = !priorityCheck;
-                                });
+                                context
+                                    .read<FirestoreNotifier>()
+                                    .togglePriorityCheck();
                               },
                             ),
                           ),
@@ -111,16 +113,17 @@ class _HomePageState extends State<HomePage> {
               childCount: 1,
             ),
           ),
-          StreamBuilder<QuerySnapshot>(
-            stream: notices.snapshots(),
+          StreamBuilder<List<Notice>>(
+            stream: context.watch<FirestoreNotifier>().noticesStream,
             builder:
-                (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                (BuildContext context, AsyncSnapshot<List<Notice>> snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 loading = true;
               } else {
                 loading = false;
               }
               if (snapshot.hasError) {
+                logger.e(snapshot.error);
                 return SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (BuildContext context, int index) {
@@ -146,7 +149,7 @@ class _HomePageState extends State<HomePage> {
                 return SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (BuildContext context, int index) {
-                      if (index == snapshot.data?.docs.length) {
+                      if (index == snapshot.data?.length) {
                         return SizedBox(
                           height: 100,
                           width: 100,
@@ -159,27 +162,27 @@ class _HomePageState extends State<HomePage> {
                                   : Container()),
                         );
                       }
-                      final bool download = snapshot.data?.docs[index]['url']
+                      final bool download = snapshot.data?[index].url
                               .toString()
                               .toLowerCase()
                               .contains(".pdf") ??
                           false;
-                      if (priorityCheck) {
-                        if (snapshot.data?.docs[index]['priority']) {
+                      if (context.watch<FirestoreNotifier>().priorityCheck) {
+                        if (snapshot.data?[index].priority ?? false) {
                           return NoticeTile(
                             download: download,
-                            document: snapshot.data?.docs[index],
+                            document: snapshot.data?[index],
                           );
                         }
                       } else {
                         return NoticeTile(
                           download: download,
-                          document: snapshot.data?.docs[index],
+                          document: snapshot.data?[index],
                         );
                       }
                       return Container();
                     },
-                    childCount: snapshot.data?.docs.length ?? 0 + 1,
+                    childCount: snapshot.data?.length ?? 0 + 1,
                   ),
                 );
               }

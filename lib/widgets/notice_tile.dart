@@ -1,11 +1,11 @@
 import 'dart:io';
 import 'dart:math';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:ip_notices/main.dart';
+import 'package:ip_notices/models/notice.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
@@ -18,7 +18,7 @@ class NoticeTile extends StatelessWidget {
     required this.download,
   }) : super(key: key);
 
-  final DocumentSnapshot? document;
+  final Notice? document;
   final bool download;
 
   _launchURL(String url) async {
@@ -69,7 +69,7 @@ class NoticeTile extends StatelessWidget {
                     color: Colors.red[400], size: 30.0),
               ),
               title: Text(
-                (document?.data() as Map)["title"],
+                (document?.title ?? ''),
                 style: TextStyle(
                   color: prefs.get('theme') == 0
                       ? Color(0xFF333333)
@@ -90,7 +90,7 @@ class NoticeTile extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(top: 2.0),
                     child: Text(
-                      " ${(document?.data() as Map)["date"]}",
+                      " ${document?.date}",
                       style: TextStyle(
                         color: prefs.get('theme') == 0
                             ? Color(0xFF333333).withOpacity(0.8)
@@ -114,8 +114,7 @@ class NoticeTile extends StatelessWidget {
                     trailingIcon: CupertinoIcons.doc_text,
                     onPressed: () {
                       Navigator.pop(context);
-                      String link =
-                          "http://www.ipu.ac.in${(document?.data() as Map)["url"]}";
+                      String link = "http://www.ipu.ac.in${document?.url}";
                       _launchURL(link);
                     },
                   ),
@@ -128,8 +127,7 @@ class NoticeTile extends StatelessWidget {
                       if (!status.isGranted) {
                         await Permission.storage.request();
                       }
-                      String link =
-                          "http://www.ipu.ac.in${(document?.data() as Map)["url"]}";
+                      String link = "http://www.ipu.ac.in${document?.url}";
                       String _localPath = (await _findLocalPath()) + '/Notices';
                       final savedDir = Directory(_localPath);
                       bool hasExisted = await savedDir.exists();
@@ -144,7 +142,7 @@ class NoticeTile extends StatelessWidget {
                       final taskId = await FlutterDownloader.enqueue(
                         url: link,
                         fileName:
-                            '${(document?.data() as Map)["title"].toString().replaceAll("/", "")} $name.pdf',
+                            '${document?.title.toString().replaceAll("/", "")} $name.pdf',
                         savedDir: _localPath,
                         showNotification: true,
                         openFileFromNotification: true,
@@ -157,10 +155,8 @@ class NoticeTile extends StatelessWidget {
                     trailingIcon: CupertinoIcons.share,
                     onPressed: () {
                       Navigator.pop(context);
-                      String link =
-                          "http://www.ipu.ac.in${(document?.data() as Map)["url"]}";
-                      Share.share(
-                          "$link\n${(document?.data() as Map)["title"]}");
+                      String link = "http://www.ipu.ac.in${document?.url}";
+                      Share.share("$link\n${document?.title}");
                     },
                   )
                 ]
@@ -171,8 +167,7 @@ class NoticeTile extends StatelessWidget {
                     trailingIcon: CupertinoIcons.doc_text,
                     onPressed: () {
                       Navigator.pop(context);
-                      String link =
-                          "http://www.ipu.ac.in${(document?.data() as Map)["url"]}";
+                      String link = "http://www.ipu.ac.in${document?.url}";
                       _launchURL(link);
                     },
                   ),
@@ -181,10 +176,8 @@ class NoticeTile extends StatelessWidget {
                     trailingIcon: CupertinoIcons.share,
                     onPressed: () {
                       Navigator.pop(context);
-                      String link =
-                          "http://www.ipu.ac.in${(document?.data() as Map)["url"]}";
-                      Share.share(
-                          "$link\n${(document?.data() as Map)["title"]}");
+                      String link = "http://www.ipu.ac.in${document?.url}";
+                      Share.share("$link\n${document?.title}");
                     },
                   )
                 ],
@@ -215,8 +208,7 @@ class NoticeTile extends StatelessWidget {
                   debugPrint("Long Press");
                 },
                 onTap: () {
-                  String link =
-                      "http://www.ipu.ac.in${(document?.data() as Map)["url"]}";
+                  String link = "http://www.ipu.ac.in${document?.url}";
                   _launchURL(link);
                 },
                 contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
@@ -231,7 +223,7 @@ class NoticeTile extends StatelessWidget {
                       color: Colors.red[400], size: 30.0),
                 ),
                 title: Text(
-                  (document?.data() as Map)["title"],
+                  document?.title ?? '',
                   style: TextStyle(
                     color: Colors.black,
                     fontWeight: FontWeight.w600,
@@ -248,7 +240,7 @@ class NoticeTile extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.only(top: 2.0),
                       child: Text(
-                        " ${(document?.data() as Map)["date"]}",
+                        " ${document?.date}",
                         style: TextStyle(
                           color: Colors.black.withOpacity(0.8),
                           fontSize: 12,
