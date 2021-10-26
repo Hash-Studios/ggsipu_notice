@@ -1,5 +1,6 @@
 name: ggsipu_notice
 description: A new Flutter project.
+publish_to: none'
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -23,9 +24,11 @@ dependencies:
   cupertino_icons: ^1.0.2
   firebase_core: ^1.0.3
   flutter_downloader: ^1.6.0
-  flutter_neumorphic: ^1.0.7
+  flutter_neumorphic:
+    git:
+      url: https://github.com/tsvillain/Flutter-Neumorphic.git
   http: ^0.13.1
-  onesignal_flutter: ^2.6.3
+  onesignal_flutter: ^3.2.3
   path_provider: ^2.0.1
   permission_handler: ^8.1.2
   share: ^2.0.1

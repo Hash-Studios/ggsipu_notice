@@ -1,13 +1,13 @@
-import 'package:flutter/services.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:ggsipu_notice/keys.dart';
 import 'package:ggsipu_notice/ui/pages/homeScreen.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:firebase_core/firebase_core.dart';
 
 SharedPreferences prefs;
 List<NeumorphicThemeData> themes = [
@@ -58,12 +58,10 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   Future<void> initOSN() async {
     OneSignal.shared.setLogLevel(OSLogLevel.verbose, OSLogLevel.none);
-    OneSignal.shared.init(oneSignalAppID, iOSSettings: {
-      OSiOSSettings.autoPrompt: false,
-      OSiOSSettings.inAppLaunchUrl: false
+    OneSignal.shared.setAppId(oneSignalAppID);
+    OneSignal.shared.promptUserForPushNotificationPermission().then((accepted) {
+      debugPrint("iOS Accepted permission: $accepted");
     });
-    OneSignal.shared
-        .setInFocusDisplayType(OSNotificationDisplayType.notification);
     await OneSignal.shared.sendTags({
       "new_notices": "true",
     });
@@ -86,8 +84,8 @@ class _MyAppState extends State<MyApp> {
       title: 'GGSIPU Notices',
       theme: CupertinoThemeData(),
       home: NeumorphicTheme(
-        usedTheme:
-            prefs.get('theme') == 0 ?? 0 ? UsedTheme.LIGHT : UsedTheme.DARK,
+        themeMode:
+            prefs.get('theme') == 0 ?? 0 ? ThemeMode.light : ThemeMode.dark,
         theme: NeumorphicThemeData(
           baseColor: Color(0xFFDDDDDD),
           accentColor: Color(0x00CCCCCC),

@@ -208,7 +208,8 @@ class NoticeTile extends StatelessWidget {
                         ? Color(0xFF222222)
                         : Colors.black,
               ),
-              boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(15)),
+
+              // boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(15)),
               child: ListTile(
                 enableFeedback: true,
                 hoverColor: Colors.transparent,
