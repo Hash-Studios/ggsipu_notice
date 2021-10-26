@@ -1,11 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 
 class AboutButton extends StatelessWidget {
   const AboutButton({
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override
@@ -14,7 +13,7 @@ class AboutButton extends StatelessWidget {
       elevation: 0,
       color: Colors.transparent,
       child: IconButton(
-        padding: EdgeInsets.only(bottom: 2),
+        padding: const EdgeInsets.only(bottom: 2),
         highlightColor: Colors.transparent,
         hoverColor: Colors.transparent,
         splashColor: Colors.transparent,
@@ -22,14 +21,15 @@ class AboutButton extends StatelessWidget {
           showCupertinoDialog(
               context: context,
               barrierDismissible: true,
-              builder: (BuildContext context) => AboutDialog());
+              builder: (BuildContext context) => const AboutDialog());
         },
         icon: Icon(
-          NeumorphicTheme.isUsingDark(context)
-              ? CupertinoIcons.info
-              : CupertinoIcons.info,
+          // NeumorphicTheme.isUsingDark(context)
+          // ? CupertinoIcons.info
+          // :
+          CupertinoIcons.info,
         ),
-        color: NeumorphicTheme.defaultTextColor(context),
+        color: Colors.black,
         iconSize: 20,
       ),
     );
@@ -38,13 +38,13 @@ class AboutButton extends StatelessWidget {
 
 class AboutDialog extends StatelessWidget {
   const AboutDialog({
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return CupertinoAlertDialog(
-      title: new Text("GGSIPU Notices v1.1.1+13"),
+      title: Text("GGSIPU Notices v1.1.1+13"),
       content: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
@@ -57,13 +57,12 @@ class AboutDialog extends StatelessWidget {
               elevation: 0,
               color: Colors.white54,
               borderRadius: BorderRadius.circular(20),
-              child: new ListTile(
+              child: ListTile(
                 leading: Container(
                     padding: EdgeInsets.only(right: 12.0),
-                    decoration: new BoxDecoration(
-                      border: new Border(
-                        right:
-                            new BorderSide(width: 1.0, color: Colors.white54),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        right: BorderSide(width: 1.0, color: Colors.white54),
                       ),
                     ),
                     child: CircleAvatar(

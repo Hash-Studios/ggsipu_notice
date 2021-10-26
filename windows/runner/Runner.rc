@@ -92,10 +92,10 @@ BEGIN
             VALUE "CompanyName", "com.hash" "\0"
             VALUE "FileDescription", "A new Flutter project." "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "ggsipu_notice" "\0"
+            VALUE "InternalName", "ip_notices" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2021 com.hash. All rights reserved." "\0"
-            VALUE "OriginalFilename", "ggsipu_notice.exe" "\0"
-            VALUE "ProductName", "ggsipu_notice" "\0"
+            VALUE "OriginalFilename", "ip_notices.exe" "\0"
+            VALUE "ProductName", "ip_notices" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

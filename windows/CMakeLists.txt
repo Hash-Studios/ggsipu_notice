@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
-project(ggsipu_notice LANGUAGES CXX)
+project(ip_notices LANGUAGES CXX)
 
-set(BINARY_NAME "ggsipu_notice")
+set(BINARY_NAME "ip_notices")
 
 cmake_policy(SET CMP0063 NEW)
 

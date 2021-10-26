@@ -1,17 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_neumorphic/flutter_neumorphic.dart';
-import 'package:ggsipu_notice/ui/widgets/about.dart';
-import 'package:ggsipu_notice/ui/widgets/noticeTile.dart';
-import 'package:ggsipu_notice/ui/widgets/themeswitch.dart';
 import 'package:flutter/material.dart';
+import 'package:ip_notices/widgets/about_button.dart';
+import 'package:ip_notices/widgets/notice_tile.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomePage extends StatefulWidget {
+  const HomePage({Key? key}) : super(key: key);
+
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  _HomePageState createState() => _HomePageState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomePageState extends State<HomePage> {
   bool priorityCheck = false;
   int limit = 8;
   bool loading = false;
@@ -39,24 +39,24 @@ class _HomeScreenState extends State<HomeScreen> {
         .orderBy('createdAt', descending: true)
         .limit(limit);
     return CupertinoPageScaffold(
-      backgroundColor: NeumorphicTheme.baseColor(context),
+      backgroundColor: Colors.white,
       child: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         controller: controller,
         slivers: [
           CupertinoSliverNavigationBar(
             leading: AboutButton(),
-            trailing: ThemeSwitchButton(),
+            // trailing: ThemeSwitchButton(),
             border: null,
             automaticallyImplyLeading: false,
             padding: EdgeInsetsDirectional.zero,
             largeTitle: Text(
               'Notices',
               style: TextStyle(
-                color: NeumorphicTheme.defaultTextColor(context),
+                color: Colors.black,
               ),
             ),
-            backgroundColor: NeumorphicTheme.accentColor(context),
+            backgroundColor: Colors.white,
           ),
           CupertinoSliverRefreshControl(
             onRefresh: () {
@@ -79,8 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Text(
                           priorityCheck ? "Priority" : "Latest",
                           style: TextStyle(
-                            color: NeumorphicTheme.defaultTextColor(context)
-                                .withOpacity(0.8),
+                            color: Colors.black.withOpacity(0.8),
                             fontWeight: FontWeight.w600,
                             fontSize: 20,
                           ),
@@ -95,8 +94,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               icon: priorityCheck
                                   ? Icon(CupertinoIcons.star)
                                   : Icon(CupertinoIcons.time),
-                              color: NeumorphicTheme.defaultTextColor(context)
-                                  .withOpacity(0.8),
+                              color: Colors.black.withOpacity(0.8),
                               onPressed: () {
                                 setState(() {
                                   priorityCheck = !priorityCheck;
@@ -134,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Center(
                             child: Icon(
                               CupertinoIcons.multiply_circle,
-                              color: NeumorphicTheme.defaultTextColor(context),
+                              color: Colors.black,
                             ),
                           ),
                         ),
@@ -148,7 +146,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 return SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (BuildContext context, int index) {
-                      if (index == snapshot.data.docs.length) {
+                      if (index == snapshot.data?.docs.length) {
                         return SizedBox(
                           height: 100,
                           width: 100,
@@ -161,26 +159,27 @@ class _HomeScreenState extends State<HomeScreen> {
                                   : Container()),
                         );
                       }
-                      final bool download = snapshot.data.docs[index]['url']
-                          .toString()
-                          .toLowerCase()
-                          .contains(".pdf");
+                      final bool download = snapshot.data?.docs[index]['url']
+                              .toString()
+                              .toLowerCase()
+                              .contains(".pdf") ??
+                          false;
                       if (priorityCheck) {
-                        if (snapshot.data.docs[index]['priority']) {
+                        if (snapshot.data?.docs[index]['priority']) {
                           return NoticeTile(
                             download: download,
-                            document: snapshot.data.docs[index],
+                            document: snapshot.data?.docs[index],
                           );
                         }
                       } else {
                         return NoticeTile(
                           download: download,
-                          document: snapshot.data.docs[index],
+                          document: snapshot.data?.docs[index],
                         );
                       }
                       return Container();
                     },
-                    childCount: snapshot.data.docs.length + 1,
+                    childCount: snapshot.data?.docs.length ?? 0 + 1,
                   ),
                 );
               }

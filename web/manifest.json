@@ -1,6 +1,6 @@
 {
-    "name": "ggsipu_notice",
-    "short_name": "ggsipu_notice",
+    "name": "ip_notices",
+    "short_name": "ip_notices",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

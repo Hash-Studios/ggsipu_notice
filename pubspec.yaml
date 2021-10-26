@@ -1,6 +1,9 @@
-name: ggsipu_notice
+name: ip_notices
 description: A new Flutter project.
-publish_to: none'
+
+# The following line prevents the package from being accidentally published to
+# pub.dev using `flutter pub publish`. This is preferred for private packages.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -15,30 +18,38 @@ publish_to: none'
 version: 1.1.1+13
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=2.12.0 <3.0.0"
 
+# Dependencies specify other packages that your package needs in order to work.
+# To automatically upgrade your package dependencies to the latest versions
+# consider running `flutter pub upgrade --major-versions`. Alternatively,
+# dependencies can be manually updated by changing the version numbers below to
+# the latest version available on pub.dev. To see which dependencies have newer
+# versions available, run `flutter pub outdated`.
 dependencies:
+  cloud_firestore: ^2.5.4
+  cupertino_icons: ^1.0.2
+  firebase_core: ^1.8.0
   flutter:
     sdk: flutter
-  cloud_firestore: ^2.3.0
-  cupertino_icons: ^1.0.2
-  firebase_core: ^1.0.3
-  flutter_downloader: ^1.6.0
-  flutter_neumorphic:
-    git:
-      url: https://github.com/tsvillain/Flutter-Neumorphic.git
-  http: ^0.13.1
+  flutter_displaymode: ^0.3.2
+  flutter_downloader: ^1.7.1
+  json_annotation: ^4.3.0
+  logger: ^1.1.0
   onesignal_flutter: ^3.2.3
-  path_provider: ^2.0.1
-  permission_handler: ^8.1.2
-  share: ^2.0.1
-  shared_preferences: ^2.0.5
-  url_launcher: ^6.0.3
+  path_provider: ^2.0.5
+  permission_handler: ^8.2.5
+  share_plus: ^3.0.4
+  shared_preferences: ^2.0.8
+  url_launcher: ^6.0.12
 
 dev_dependencies:
+  build_runner: ^2.1.4
+  flutter_launcher_icons: ^0.9.2
+  flutter_lints: ^1.0.0
   flutter_test:
     sdk: flutter
-  flutter_launcher_icons: ^0.9.0
+  json_serializable: ^6.0.0
 
 flutter_icons:
   android: true
@@ -56,7 +67,6 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
-
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
