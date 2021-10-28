@@ -39,6 +39,29 @@ def only_new_notice_tr(tag):
     return tag.name == 'tr' and not tag.has_attr('id') and not tag.has_attr('style')
 
 
+# Check college
+
+
+def check_college(title):
+    college = ""
+    for check in ["usict", "usit", "usct", "usms", "uslls", "usbt", "usmc", "usap", "msit", "usar", "usdi", "bvce", "gtbit"]:
+        if check in title.lower():
+            college = check
+            break
+    return college
+
+# Check notice tags
+
+
+def check_tags(title):
+    tags = set()
+    for check in ["ph.d", "b.tech", "b.sc", "m.sc", "m.tech", "cet", "theory", "result", "merit", "scholar", "research", "revised", "annual", "practical", "hackathon", "counselling", "date", "datesheet", "final", "exam", "examination", "time", "last", "calendar", "schedule", "proposed"]:
+        if check in title.lower():
+            tags.add(check)
+    return list(tags)
+
+    
+
 def sensor():
 
     global notices
