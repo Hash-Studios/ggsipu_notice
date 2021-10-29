@@ -21,6 +21,10 @@ class Notice {
   bool priority;
   @JsonKey(required: true)
   String color;
+  @JsonKey()
+  String? college;
+  @JsonKey()
+  List<String?>? tags;
 
   Notice({
     required this.title,
@@ -29,6 +33,8 @@ class Notice {
     required this.createdAt,
     required this.priority,
     required this.color,
+    this.college,
+    this.tags,
   });
 
   factory Notice.fromJson(Map<String, dynamic> json) {

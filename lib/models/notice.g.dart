@@ -26,6 +26,8 @@ Notice _$NoticeFromJson(Map<String, dynamic> json) {
         const TimestampConverter().fromJson(json['createdAt'] as Timestamp),
     priority: json['priority'] as bool,
     color: json['color'] as String,
+    college: json['college'] as String?,
+    tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String?).toList(),
   );
 }
 
@@ -36,4 +38,6 @@ Map<String, dynamic> _$NoticeToJson(Notice instance) => <String, dynamic>{
       'createdAt': const TimestampConverter().toJson(instance.createdAt),
       'priority': instance.priority,
       'color': instance.color,
+      'college': instance.college,
+      'tags': instance.tags,
     };
