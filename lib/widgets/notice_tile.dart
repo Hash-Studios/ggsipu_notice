@@ -104,8 +104,7 @@ class NoticeTile extends StatelessWidget {
                     ? "${document?.date.split('-')[0]} ${DateFormat('MMM').format(DateTime(0, int.parse(document?.date.split('-')[1] ?? '0')))}"
                     : timeago
                         .format(DateTime.parse(
-                                document?.createdAt.toString() ?? '0')
-                            .add(const Duration(minutes: 40)))
+                            document?.createdAt.toString() ?? '0'))
                         .replaceAll('about', '')
                         .replaceAll('hour', 'hr')
                         .replaceAll('minute', 'min')
@@ -222,7 +221,9 @@ class NoticeTile extends StatelessWidget {
               border: Border(
                   bottom: BorderSide(color: Colors.grey.shade300, width: 0.5))),
           child: ListTile(
-            isThreeLine: (document?.college ?? '').toUpperCase().trim() != "",
+            isThreeLine:
+                (document?.college ?? '').toUpperCase().trim().isNotEmpty ||
+                    ((document?.tags ?? []).isNotEmpty),
             enableFeedback: true,
             onLongPress: () {
               logger.d("Long Press");
@@ -258,15 +259,54 @@ class NoticeTile extends StatelessWidget {
               ),
             ),
             subtitle: (document?.college ?? '').toUpperCase().trim() == ""
-                ? null
-                : Text(
-                    document?.title ?? '',
-                    maxLines: 10,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 14,
-                    ),
+                ? ((document?.tags ?? []).isNotEmpty)
+                    ? Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width,
+                          height: 40,
+                          child: ListView(
+                            padding: const EdgeInsets.all(0),
+                            shrinkWrap: true,
+                            scrollDirection: Axis.horizontal,
+                            children: [
+                              for (final tag in document?.tags ?? [])
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 6),
+                                  child: Tagchip(tag: tag),
+                                ),
+                            ],
+                          ),
+                        ),
+                      )
+                    : null
+                : Column(
+                    children: [
+                      Text(
+                        document?.title ?? '',
+                        maxLines: 10,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 14,
+                        ),
+                      ),
+                      if ((document?.tags ?? []).isNotEmpty)
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width,
+                          height: 40,
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            children: [
+                              for (final tag in document?.tags ?? [])
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 6),
+                                  child: Tagchip(tag: tag),
+                                ),
+                            ],
+                          ),
+                        ),
+                    ],
                   ),
             trailing: Column(
               mainAxisAlignment: MainAxisAlignment.start,
@@ -281,8 +321,7 @@ class NoticeTile extends StatelessWidget {
                       ? "${document?.date.split('-')[0]} ${DateFormat('MMM').format(DateTime(0, int.parse(document?.date.split('-')[1] ?? '0')))}"
                       : timeago
                           .format(DateTime.parse(
-                                  document?.createdAt.toString() ?? '0')
-                              .add(const Duration(minutes: 40)))
+                              document?.createdAt.toString() ?? '0'))
                           .replaceAll('about', '')
                           .replaceAll('hour', 'hr')
                           .replaceAll('minute', 'min')
@@ -313,6 +352,29 @@ class NoticeTile extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class Tagchip extends StatelessWidget {
+  const Tagchip({
+    Key? key,
+    required this.tag,
+  }) : super(key: key);
+
+  final String tag;
+
+  @override
+  Widget build(BuildContext context) {
+    return Chip(
+      backgroundColor: Colors.black.withOpacity(0.01),
+      label: Text(tag),
+      padding: const EdgeInsets.all(0),
+      labelStyle: TextStyle(
+        color: Colors.black.withOpacity(0.8),
+        fontSize: 12,
+      ),
+      visualDensity: VisualDensity.compact,
     );
   }
 }
