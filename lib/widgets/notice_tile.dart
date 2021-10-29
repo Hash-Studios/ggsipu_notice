@@ -10,6 +10,7 @@ import 'package:ip_notices/services/logger.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:timeago/timeago.dart' as timeago;
 import 'package:url_launcher/url_launcher.dart';
 
 class NoticeTile extends StatelessWidget {
@@ -47,6 +48,7 @@ class NoticeTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(12.0),
         ),
         child: ListTile(
+          isThreeLine: (document?.college ?? '').toUpperCase().trim() != "",
           enableFeedback: true,
           onTap: () {
             String link = "http://www.ipu.ac.in${document?.url}";
@@ -65,21 +67,71 @@ class NoticeTile extends StatelessWidget {
                 ),
               )),
           title: Text(
-            document?.title ?? '',
+            (document?.college ?? '').toUpperCase().trim() != ""
+                ? (document?.college ?? '').toUpperCase().trim()
+                : document?.title ?? '',
             maxLines: 10,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.black,
+              fontWeight: (document?.college ?? '').toUpperCase().trim() == ""
+                  ? FontWeight.normal
+                  : FontWeight.bold,
               fontSize: 14,
             ),
           ),
-          trailing: Text(
-            "${document?.date.split('-')[0]} ${DateFormat('MMM').format(DateTime(0, int.parse(document?.date.split('-')[1] ?? '0')))}",
-            style: TextStyle(
-              color: Colors.black.withOpacity(0.8),
-              fontSize: 12,
-              fontWeight: FontWeight.w300,
-            ),
+          subtitle: (document?.college ?? '').toUpperCase().trim() == ""
+              ? null
+              : Text(
+                  document?.title ?? '',
+                  maxLines: 10,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 14,
+                  ),
+                ),
+          trailing: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                timeago
+                        .format(DateTime.parse(
+                            document?.createdAt.toString() ?? '0'))
+                        .contains('day')
+                    ? "${document?.date.split('-')[0]} ${DateFormat('MMM').format(DateTime(0, int.parse(document?.date.split('-')[1] ?? '0')))}"
+                    : timeago
+                        .format(DateTime.parse(
+                                document?.createdAt.toString() ?? '0')
+                            .add(const Duration(minutes: 40)))
+                        .replaceAll('about', '')
+                        .replaceAll('hour', 'hr')
+                        .replaceAll('minute', 'min')
+                        .replaceAll('ago', '')
+                        .replaceAll('an', '1')
+                        .trim(),
+                textAlign: TextAlign.end,
+                style: TextStyle(
+                  color: Colors.black.withOpacity(0.8),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w300,
+                ),
+              ),
+              // const SizedBox(
+              //   height: 6,
+              // ),
+              // Text(
+              //   (document?.college ?? '').toUpperCase().trim(),
+              //   textAlign: TextAlign.end,
+              //   style: TextStyle(
+              //     color: Colors.black.withOpacity(0.6),
+              //     fontSize: 12,
+              //     fontWeight: FontWeight.w300,
+              //   ),
+              // ),
+            ],
           ),
         ),
       ),
@@ -170,6 +222,7 @@ class NoticeTile extends StatelessWidget {
               border: Border(
                   bottom: BorderSide(color: Colors.grey.shade300, width: 0.5))),
           child: ListTile(
+            isThreeLine: (document?.college ?? '').toUpperCase().trim() != "",
             enableFeedback: true,
             onLongPress: () {
               logger.d("Long Press");
@@ -191,21 +244,71 @@ class NoticeTile extends StatelessWidget {
                   ),
                 )),
             title: Text(
-              document?.title ?? '',
+              (document?.college ?? '').toUpperCase().trim() != ""
+                  ? (document?.college ?? '').toUpperCase().trim()
+                  : document?.title ?? '',
               maxLines: 10,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.black,
+                fontWeight: (document?.college ?? '').toUpperCase().trim() == ""
+                    ? FontWeight.normal
+                    : FontWeight.bold,
                 fontSize: 14,
               ),
             ),
-            trailing: Text(
-              "${document?.date.split('-')[0]} ${DateFormat('MMM').format(DateTime(0, int.parse(document?.date.split('-')[1] ?? '0')))}",
-              style: TextStyle(
-                color: Colors.black.withOpacity(0.8),
-                fontSize: 12,
-                fontWeight: FontWeight.w300,
-              ),
+            subtitle: (document?.college ?? '').toUpperCase().trim() == ""
+                ? null
+                : Text(
+                    document?.title ?? '',
+                    maxLines: 10,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 14,
+                    ),
+                  ),
+            trailing: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  timeago
+                          .format(DateTime.parse(
+                              document?.createdAt.toString() ?? '0'))
+                          .contains('day')
+                      ? "${document?.date.split('-')[0]} ${DateFormat('MMM').format(DateTime(0, int.parse(document?.date.split('-')[1] ?? '0')))}"
+                      : timeago
+                          .format(DateTime.parse(
+                                  document?.createdAt.toString() ?? '0')
+                              .add(const Duration(minutes: 40)))
+                          .replaceAll('about', '')
+                          .replaceAll('hour', 'hr')
+                          .replaceAll('minute', 'min')
+                          .replaceAll('ago', '')
+                          .replaceAll('an', '1')
+                          .trim(),
+                  textAlign: TextAlign.end,
+                  style: TextStyle(
+                    color: Colors.black.withOpacity(0.8),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w300,
+                  ),
+                ),
+                // const SizedBox(
+                //   height: 6,
+                // ),
+                // Text(
+                //   (document?.college ?? '').toUpperCase().trim(),
+                //   textAlign: TextAlign.end,
+                //   style: TextStyle(
+                //     color: Colors.black.withOpacity(0.6),
+                //     fontSize: 12,
+                //     fontWeight: FontWeight.w300,
+                //   ),
+                // ),
+              ],
             ),
           ),
         ),
