@@ -68,7 +68,7 @@ class ThemeService {
     final ThemeData t =
         ThemeData.from(textTheme: txtTheme, colorScheme: colorScheme).copyWith(
       textSelectionTheme: TextSelectionThemeData(cursorColor: accentL),
-      highlightColor: accentL,
+      highlightColor: accentL.withOpacity(0.2),
       scaffoldBackgroundColor: backgroundL,
       toggleableActiveColor: accentL,
     );
@@ -106,7 +106,7 @@ class ThemeService {
     final ThemeData t =
         ThemeData.from(textTheme: txtTheme, colorScheme: colorScheme).copyWith(
       textSelectionTheme: TextSelectionThemeData(cursorColor: accentD),
-      highlightColor: accentD,
+      highlightColor: accentD.withOpacity(0.2),
       scaffoldBackgroundColor: backgroundD,
       toggleableActiveColor: accentD,
     );
