@@ -41,9 +41,19 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final _themeService = locator<ThemeService>();
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-    ));
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness:
+            MediaQuery.of(context).platformBrightness == Brightness.dark
+                ? Brightness.light
+                : Brightness.dark,
+        statusBarBrightness:
+            MediaQuery.of(context).platformBrightness == Brightness.dark
+                ? Brightness.light
+                : Brightness.dark,
+      ),
+    );
     return CupertinoPageScaffold(
       backgroundColor: _themeService.background(context),
       child: SafeArea(

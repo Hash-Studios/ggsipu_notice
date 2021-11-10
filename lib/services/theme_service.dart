@@ -7,28 +7,33 @@ class ThemeService {
   Color accentD = const Color(0xFF303F60);
 
   Color accent(context) =>
-      Theme.of(context).brightness != Brightness.dark ? accentD : accentL;
-  Color onAccent(context) => Theme.of(context).brightness != Brightness.dark
-      ? accentD.computeLuminance() > 0.5
-          ? Colors.black
-          : Colors.white
-      : accentL.computeLuminance() > 0.5
-          ? Colors.black
-          : Colors.white;
+      MediaQuery.of(context).platformBrightness == Brightness.dark
+          ? accentD
+          : accentL;
+  Color onAccent(context) =>
+      MediaQuery.of(context).platformBrightness == Brightness.dark
+          ? accentD.computeLuminance() > 0.5
+              ? Colors.black
+              : Colors.white
+          : accentL.computeLuminance() > 0.5
+              ? Colors.black
+              : Colors.white;
 
-  Color onBackground(context) => Theme.of(context).brightness != Brightness.dark
-      ? backgroundD.computeLuminance() > 0.5
-          ? Colors.black
-          : Colors.white
-      : backgroundL.computeLuminance() > 0.5
-          ? Colors.black
-          : Colors.white;
+  Color onBackground(context) =>
+      MediaQuery.of(context).platformBrightness == Brightness.dark
+          ? backgroundD.computeLuminance() > 0.5
+              ? Colors.black
+              : Colors.white
+          : backgroundL.computeLuminance() > 0.5
+              ? Colors.black
+              : Colors.white;
 
-  Color background(context) => Theme.of(context).brightness != Brightness.dark
-      ? backgroundD
-      : backgroundL;
+  Color background(context) =>
+      MediaQuery.of(context).platformBrightness == Brightness.dark
+          ? backgroundD
+          : backgroundL;
   Color backgroundHighContrast(context) =>
-      Theme.of(context).brightness != Brightness.dark
+      MediaQuery.of(context).platformBrightness == Brightness.dark
           ? const Color(0xFF181818)
           : Colors.white;
 

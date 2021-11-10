@@ -8,6 +8,7 @@ import 'package:ip_notices/notifiers/firestore_notifier.dart';
 import 'package:ip_notices/pages/home_page.dart';
 import 'package:ip_notices/services/locator.dart';
 import 'package:ip_notices/services/logger.dart';
+import 'package:ip_notices/services/theme_service.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -43,14 +44,24 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const CupertinoApp(
-      localizationsDelegates: [
+    return CupertinoApp(
+      localizationsDelegates: const [
         DefaultMaterialLocalizations.delegate,
         DefaultCupertinoLocalizations.delegate,
         DefaultWidgetsLocalizations.delegate,
       ],
       title: 'GGSIPU Notices',
-      home: HomePage(),
+      home: Builder(builder: (context) {
+        final Brightness brightnessValue =
+            MediaQuery.of(context).platformBrightness;
+        bool isDark = brightnessValue == Brightness.dark;
+        return Theme(
+          data: isDark
+              ? locator<ThemeService>().darkThemeData
+              : locator<ThemeService>().themeData,
+          child: const HomePage(),
+        );
+      }),
     );
   }
 }
