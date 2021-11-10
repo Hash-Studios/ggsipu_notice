@@ -224,8 +224,8 @@ class NoticeTile extends StatelessWidget {
               border: Border(
                   bottom: BorderSide(
                       color:
-                          _themeService.onBackground(context).withOpacity(0.2),
-                      width: 0.5))),
+                          _themeService.onBackground(context).withOpacity(0.1),
+                      width: 1))),
           child: ListTile(
             isThreeLine:
                 (document?.college ?? '').toUpperCase().trim().isNotEmpty,

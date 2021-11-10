@@ -73,6 +73,11 @@ class _HomePageState extends State<HomePage> {
                   ? Brightness.dark
                   : Brightness.light,
               leading: const AboutButton(),
+              border: Border(
+                  bottom: BorderSide(
+                      color:
+                          _themeService.onBackground(context).withOpacity(0.1),
+                      width: 1)),
               automaticallyImplyLeading: false,
               padding: EdgeInsetsDirectional.zero,
               stretch: true,
