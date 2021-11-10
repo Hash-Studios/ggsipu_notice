@@ -228,8 +228,8 @@ class NoticeTile extends StatelessWidget {
                       width: 0.5))),
           child: ListTile(
             isThreeLine:
-                (document?.college ?? '').toUpperCase().trim().isNotEmpty ||
-                    ((document?.tags ?? []).isNotEmpty),
+                (document?.college ?? '').toUpperCase().trim().isNotEmpty,
+            // || ((document?.tags ?? []).isNotEmpty),
             enableFeedback: true,
             onLongPress: () {
               logger.d("Long Press");
@@ -266,25 +266,26 @@ class NoticeTile extends StatelessWidget {
             ),
             subtitle: (document?.college ?? '').toUpperCase().trim() == ""
                 ? ((document?.tags ?? []).isNotEmpty)
-                    ? Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: SizedBox(
-                          width: MediaQuery.of(context).size.width,
-                          height: 40,
-                          child: ListView(
-                            padding: const EdgeInsets.all(0),
-                            shrinkWrap: true,
-                            scrollDirection: Axis.horizontal,
-                            children: [
-                              for (final tag in document?.tags ?? [])
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 6),
-                                  child: Tagchip(tag: tag),
-                                ),
-                            ],
-                          ),
-                        ),
-                      )
+                    ? null
+                    // ? Padding(
+                    //     padding: const EdgeInsets.only(top: 8.0),
+                    //     child: SizedBox(
+                    //       width: MediaQuery.of(context).size.width,
+                    //       height: 40,
+                    //       child: ListView(
+                    //         padding: const EdgeInsets.all(0),
+                    //         shrinkWrap: true,
+                    //         scrollDirection: Axis.horizontal,
+                    //         children: [
+                    //           for (final tag in document?.tags ?? [])
+                    //             Padding(
+                    //               padding: const EdgeInsets.only(right: 6),
+                    //               child: Tagchip(tag: tag),
+                    //             ),
+                    //         ],
+                    //       ),
+                    //     ),
+                    //   )
                     : null
                 : Column(
                     children: [
@@ -297,21 +298,21 @@ class NoticeTile extends StatelessWidget {
                           fontSize: 14,
                         ),
                       ),
-                      if ((document?.tags ?? []).isNotEmpty)
-                        SizedBox(
-                          width: MediaQuery.of(context).size.width,
-                          height: 40,
-                          child: ListView(
-                            scrollDirection: Axis.horizontal,
-                            children: [
-                              for (final tag in document?.tags ?? [])
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 6),
-                                  child: Tagchip(tag: tag),
-                                ),
-                            ],
-                          ),
-                        ),
+                      // if ((document?.tags ?? []).isNotEmpty)
+                      //   SizedBox(
+                      //     width: MediaQuery.of(context).size.width,
+                      //     height: 40,
+                      //     child: ListView(
+                      //       scrollDirection: Axis.horizontal,
+                      //       children: [
+                      //         for (final tag in document?.tags ?? [])
+                      //           Padding(
+                      //             padding: const EdgeInsets.only(right: 6),
+                      //             child: Tagchip(tag: tag),
+                      //           ),
+                      //       ],
+                      //     ),
+                      //   ),
                     ],
                   ),
             trailing: Column(
