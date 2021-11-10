@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:intl/intl.dart';
 import 'package:ip_notices/models/notice.dart';
+import 'package:ip_notices/services/locator.dart';
 import 'package:ip_notices/services/logger.dart';
+import 'package:ip_notices/services/theme_service.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
@@ -38,10 +40,11 @@ class NoticeTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final _themeService = locator<ThemeService>();
     return CupertinoContextMenu(
       key: ValueKey(document?.title ?? ''),
       previewBuilder: (context, animation, child) => Card(
-        color: Colors.white,
+        color: _themeService.background(context),
         margin: const EdgeInsets.all(0),
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -61,7 +64,7 @@ class NoticeTile extends StatelessWidget {
               child: Text(
                 document?.title[0] ?? '',
                 style: TextStyle(
-                  color: Colors.black.withOpacity(0.7),
+                  color: _themeService.onBackground(context).withOpacity(0.7),
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
                 ),
@@ -73,7 +76,7 @@ class NoticeTile extends StatelessWidget {
             maxLines: 10,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              color: Colors.black,
+              color: _themeService.onBackground(context),
               fontWeight: (document?.college ?? '').toUpperCase().trim() == ""
                   ? FontWeight.normal
                   : FontWeight.bold,
@@ -86,8 +89,8 @@ class NoticeTile extends StatelessWidget {
                   document?.title ?? '',
                   maxLines: 10,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.black,
+                  style: TextStyle(
+                    color: _themeService.onBackground(context),
                     fontSize: 14,
                   ),
                 ),
@@ -113,7 +116,7 @@ class NoticeTile extends StatelessWidget {
                         .trim(),
                 textAlign: TextAlign.end,
                 style: TextStyle(
-                  color: Colors.black.withOpacity(0.8),
+                  color: _themeService.onBackground(context).withOpacity(0.8),
                   fontSize: 12,
                   fontWeight: FontWeight.w300,
                 ),
@@ -137,7 +140,7 @@ class NoticeTile extends StatelessWidget {
       actions: download
           ? [
               CupertinoContextMenuAction(
-                child: Text("View Notice"),
+                child: const Text("View Notice"),
                 isDefaultAction: true,
                 trailingIcon: CupertinoIcons.doc_text,
                 onPressed: () {
@@ -147,7 +150,7 @@ class NoticeTile extends StatelessWidget {
                 },
               ),
               CupertinoContextMenuAction(
-                child: Text("Download"),
+                child: const Text("Download"),
                 trailingIcon: CupertinoIcons.cloud_download,
                 onPressed: () async {
                   Navigator.pop(context);
@@ -179,7 +182,7 @@ class NoticeTile extends StatelessWidget {
                 },
               ),
               CupertinoContextMenuAction(
-                child: Text("Share"),
+                child: const Text("Share"),
                 trailingIcon: CupertinoIcons.share,
                 onPressed: () {
                   Navigator.pop(context);
@@ -190,7 +193,7 @@ class NoticeTile extends StatelessWidget {
             ]
           : [
               CupertinoContextMenuAction(
-                child: Text("View Notice"),
+                child: const Text("View Notice"),
                 isDefaultAction: true,
                 trailingIcon: CupertinoIcons.doc_text,
                 onPressed: () {
@@ -200,7 +203,7 @@ class NoticeTile extends StatelessWidget {
                 },
               ),
               CupertinoContextMenuAction(
-                child: Text("Share"),
+                child: const Text("Share"),
                 trailingIcon: CupertinoIcons.share,
                 onPressed: () {
                   Navigator.pop(context);
@@ -210,7 +213,7 @@ class NoticeTile extends StatelessWidget {
               )
             ],
       child: Card(
-        color: Colors.white,
+        color: _themeService.background(context),
         margin: const EdgeInsets.all(0),
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -219,7 +222,10 @@ class NoticeTile extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
               border: Border(
-                  bottom: BorderSide(color: Colors.grey.shade300, width: 0.5))),
+                  bottom: BorderSide(
+                      color:
+                          _themeService.onBackground(context).withOpacity(0.2),
+                      width: 0.5))),
           child: ListTile(
             isThreeLine:
                 (document?.college ?? '').toUpperCase().trim().isNotEmpty ||
@@ -239,7 +245,7 @@ class NoticeTile extends StatelessWidget {
                 child: Text(
                   document?.title[0] ?? '',
                   style: TextStyle(
-                    color: Colors.black.withOpacity(0.7),
+                    color: _themeService.onBackground(context).withOpacity(0.7),
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
                   ),
@@ -251,7 +257,7 @@ class NoticeTile extends StatelessWidget {
               maxLines: 10,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: Colors.black,
+                color: _themeService.onBackground(context),
                 fontWeight: (document?.college ?? '').toUpperCase().trim() == ""
                     ? FontWeight.normal
                     : FontWeight.bold,
@@ -286,8 +292,8 @@ class NoticeTile extends StatelessWidget {
                         document?.title ?? '',
                         maxLines: 10,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.black,
+                        style: TextStyle(
+                          color: _themeService.onBackground(context),
                           fontSize: 14,
                         ),
                       ),
@@ -330,7 +336,7 @@ class NoticeTile extends StatelessWidget {
                           .trim(),
                   textAlign: TextAlign.end,
                   style: TextStyle(
-                    color: Colors.black.withOpacity(0.8),
+                    color: _themeService.onBackground(context).withOpacity(0.8),
                     fontSize: 12,
                     fontWeight: FontWeight.w300,
                   ),
@@ -366,12 +372,15 @@ class Tagchip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final _themeService = locator<ThemeService>();
     return Chip(
-      backgroundColor: Colors.black.withOpacity(0.01),
+      backgroundColor: _themeService.onBackground(context).withOpacity(1),
+      elevation: 0,
+      shadowColor: Colors.transparent,
       label: Text(tag),
       padding: const EdgeInsets.all(0),
       labelStyle: TextStyle(
-        color: Colors.black.withOpacity(0.8),
+        color: _themeService.background(context).withOpacity(0.8),
         fontSize: 12,
       ),
       visualDensity: VisualDensity.compact,

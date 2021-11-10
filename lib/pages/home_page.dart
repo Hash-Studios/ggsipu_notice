@@ -4,7 +4,9 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:ip_notices/models/notice.dart';
 import 'package:ip_notices/notifiers/firestore_notifier.dart';
+import 'package:ip_notices/services/locator.dart';
 import 'package:ip_notices/services/logger.dart';
+import 'package:ip_notices/services/theme_service.dart';
 import 'package:ip_notices/widgets/about_button.dart';
 import 'package:ip_notices/widgets/notice_tile.dart';
 import 'package:provider/provider.dart';
@@ -38,10 +40,12 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final _themeService = locator<ThemeService>();
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
     ));
     return CupertinoPageScaffold(
+      backgroundColor: _themeService.background(context),
       child: SafeArea(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
@@ -54,20 +58,25 @@ class _HomePageState extends State<HomePage> {
                   ..then<void>((_) {});
               },
             ),
-            const CupertinoSliverNavigationBar(
-              brightness: Brightness.light,
-              leading: AboutButton(),
+            CupertinoSliverNavigationBar(
+              brightness: Theme.of(context).brightness == Brightness.dark
+                  ? Brightness.dark
+                  : Brightness.light,
+              leading: const AboutButton(),
               automaticallyImplyLeading: false,
               padding: EdgeInsetsDirectional.zero,
               stretch: true,
               largeTitle: Text(
                 'Notices',
+                style: TextStyle(
+                  color: _themeService.onBackground(context),
+                ),
               ),
-              backgroundColor: Colors.white,
+              backgroundColor: _themeService.background(context),
             ),
             SliverToBoxAdapter(
               child: Material(
-                color: Colors.white,
+                color: _themeService.background(context),
                 child: InkWell(
                   onTap: () {
                     context.read<FirestoreNotifier>().togglePriorityCheck();
@@ -80,9 +89,10 @@ class _HomePageState extends State<HomePage> {
                           context.watch<FirestoreNotifier>().priorityCheck
                               ? "Priority"
                               : "Latest",
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
+                            color: _themeService.onBackground(context),
                           ),
                         ),
                         const Spacer(),
@@ -90,11 +100,9 @@ class _HomePageState extends State<HomePage> {
                           context.watch<FirestoreNotifier>().priorityCheck
                               ? CupertinoIcons.star
                               : CupertinoIcons.time,
-                          color: Theme.of(context)
-                              .textTheme
-                              .bodyText1
-                              ?.color
-                              ?.withOpacity(0.8),
+                          color: _themeService
+                              .onBackground(context)
+                              .withOpacity(0.8),
                           size: 18,
                         ),
                       ],

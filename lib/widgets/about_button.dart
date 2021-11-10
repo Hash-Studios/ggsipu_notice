@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:ip_notices/services/locator.dart';
+import 'package:ip_notices/services/theme_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AboutButton extends StatelessWidget {
@@ -9,6 +11,7 @@ class AboutButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final _themeService = locator<ThemeService>();
     return Card(
       elevation: 0,
       color: Colors.transparent,
@@ -29,7 +32,7 @@ class AboutButton extends StatelessWidget {
           // :
           CupertinoIcons.info,
         ),
-        color: Colors.black,
+        color: _themeService.onBackground(context),
         iconSize: 20,
       ),
     );
