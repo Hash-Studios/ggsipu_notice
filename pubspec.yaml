@@ -35,6 +35,7 @@ dependencies:
   flutter_displaymode: ^0.3.2
   flutter_downloader: ^1.7.1
   flutter_slidable: ^0.6.0
+  fluttertoast: ^8.0.8
   get_it: ^7.2.0
   intl: ^0.17.0
   json_annotation: ^4.3.0

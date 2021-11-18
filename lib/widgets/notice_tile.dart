@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:ip_notices/models/notice.dart';
 import 'package:ip_notices/services/locator.dart';
@@ -183,6 +184,18 @@ class _NoticeTileState extends State<NoticeTile> {
                 .isNotEmpty,
             // || ((document?.tags ?? []).isNotEmpty),
             enableFeedback: true,
+            onLongPress: () {
+              Fluttertoast.showToast(
+                msg: "Swipe to download & share.",
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.BOTTOM,
+                timeInSecForIosWeb: 1,
+                backgroundColor:
+                    _themeService.background(context).withOpacity(0.8),
+                textColor: _themeService.onBackground(context),
+                fontSize: 16.0,
+              );
+            },
             onTap: () {
               String link = "http://www.ipu.ac.in${widget.document?.url}";
               _launchURL(link);
