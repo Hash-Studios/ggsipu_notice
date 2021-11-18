@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 class ThemeService {
   Color backgroundL = const Color(0xFFFAFAFA);
   Color backgroundD = const Color(0xFF000000);
-  Color accentL = const Color(0xFF0C54BE);
-  Color accentD = const Color(0xFF303F60);
+  Color accentL = Colors.indigo;
+  Color accentD = Colors.indigo.shade400;
 
   Color accent(context) =>
       MediaQuery.of(context).platformBrightness == Brightness.dark
