@@ -95,7 +95,7 @@ class _NoticeTileState extends State<NoticeTile> {
     final _themeService = locator<ThemeService>();
     return Slidable(
       controller: slidableController,
-      actionPane: const SlidableDrawerActionPane(),
+      actionPane: const SlidableBehindActionPane(),
       actionExtentRatio: 0.25,
       closeOnScroll: true,
       actions: <Widget>[
