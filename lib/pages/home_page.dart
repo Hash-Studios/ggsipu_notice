@@ -20,6 +20,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   ScrollController controller = ScrollController();
+  bool showFab = false;
+  bool animating = false;
   @override
   void initState() {
     super.initState();
@@ -29,6 +31,23 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _scrollListener() {
+    if (controller.position.pixels <= 10 && animating) {
+      setState(() {
+        animating = false;
+      });
+    }
+    if (controller.position.pixels >= 380 && showFab == false && !animating) {
+      logger.d("FAB Shown");
+      setState(() {
+        showFab = true;
+      });
+    }
+    if (controller.position.pixels < 380 && showFab == true && !animating) {
+      logger.d("FAB Hidden");
+      setState(() {
+        showFab = false;
+      });
+    }
     if (controller.position.pixels == controller.position.maxScrollExtent) {
       logger.d("at the end of list");
       setState(() {
@@ -57,148 +76,175 @@ class _HomePageState extends State<HomePage> {
     return CupertinoPageScaffold(
       backgroundColor: _themeService.background(context),
       child: SafeArea(
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          controller: controller,
-          slivers: [
-            CupertinoSliverRefreshControl(
-              onRefresh: () {
-                context.read<FirestoreNotifier>().initNoticeStream();
-                return Future<void>.delayed(const Duration(seconds: 1))
-                  ..then<void>((_) {});
-              },
-            ),
-            CupertinoSliverNavigationBar(
-              brightness: Theme.of(context).brightness == Brightness.dark
-                  ? Brightness.dark
-                  : Brightness.light,
-              leading: const AboutButton(),
-              border: Border(
-                  bottom: BorderSide(
-                      color:
-                          _themeService.onBackground(context).withOpacity(0.1),
-                      width: 1)),
-              automaticallyImplyLeading: false,
-              padding: EdgeInsetsDirectional.zero,
-              stretch: true,
-              largeTitle: Text(
-                'Notices',
-                style: TextStyle(
-                  color: _themeService.onBackground(context),
-                ),
-              ),
-              backgroundColor: _themeService.background(context),
-            ),
-            SliverToBoxAdapter(
-              child: Material(
-                color: _themeService.background(context),
-                child: InkWell(
-                  onTap: () {
-                    context.read<FirestoreNotifier>().togglePriorityCheck();
+        child: Stack(
+          children: [
+            CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              controller: controller,
+              slivers: [
+                CupertinoSliverRefreshControl(
+                  onRefresh: () {
+                    context.read<FirestoreNotifier>().initNoticeStream();
+                    return Future<void>.delayed(const Duration(seconds: 1))
+                      ..then<void>((_) {});
                   },
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
-                    child: Row(
-                      children: [
-                        Text(
-                          context.watch<FirestoreNotifier>().priorityCheck
-                              ? "Priority"
-                              : "Latest",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                            color: _themeService.onBackground(context),
-                          ),
-                        ),
-                        const Spacer(),
-                        Icon(
-                          context.watch<FirestoreNotifier>().priorityCheck
-                              ? CupertinoIcons.star
-                              : CupertinoIcons.time,
+                ),
+                CupertinoSliverNavigationBar(
+                  brightness: Theme.of(context).brightness == Brightness.dark
+                      ? Brightness.dark
+                      : Brightness.light,
+                  leading: const AboutButton(),
+                  border: Border(
+                      bottom: BorderSide(
                           color: _themeService
                               .onBackground(context)
-                              .withOpacity(0.8),
-                          size: 18,
-                        ),
-                      ],
+                              .withOpacity(0.1),
+                          width: 1)),
+                  automaticallyImplyLeading: false,
+                  padding: EdgeInsetsDirectional.zero,
+                  stretch: true,
+                  largeTitle: Text(
+                    'Notices',
+                    style: TextStyle(
+                      color: _themeService.onBackground(context),
                     ),
                   ),
+                  backgroundColor: _themeService.background(context),
                 ),
-              ),
-            ),
-            StreamBuilder<List<Notice>>(
-              stream: context.watch<FirestoreNotifier>().noticesStream,
-              builder:
-                  (BuildContext context, AsyncSnapshot<List<Notice>> snapshot) {
-                if (snapshot.hasError) {
-                  logger.e(snapshot.error);
-                  return SliverToBoxAdapter(
-                    child: Material(
-                      color: Colors.transparent,
-                      child: SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.8,
-                        width: MediaQuery.of(context).size.width,
-                        child: const Center(
-                          child: Icon(
-                            CupertinoIcons.multiply_circle,
-                            color: Colors.red,
-                          ),
+                SliverToBoxAdapter(
+                  child: Material(
+                    color: _themeService.background(context),
+                    child: InkWell(
+                      onTap: () {
+                        context.read<FirestoreNotifier>().togglePriorityCheck();
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                        child: Row(
+                          children: [
+                            Text(
+                              context.watch<FirestoreNotifier>().priorityCheck
+                                  ? "Priority"
+                                  : "Latest",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                color: _themeService.onBackground(context),
+                              ),
+                            ),
+                            const Spacer(),
+                            Icon(
+                              context.watch<FirestoreNotifier>().priorityCheck
+                                  ? CupertinoIcons.star
+                                  : CupertinoIcons.time,
+                              color: _themeService
+                                  .onBackground(context)
+                                  .withOpacity(0.8),
+                              size: 18,
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                  );
-                }
-                if (snapshot.hasData) {
-                  return SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (BuildContext context, int index) {
-                        if (index == (snapshot.data?.length ?? 0) - 1) {
-                          return const SizedBox(
-                            height: 100,
-                            width: 100,
-                            child: Center(
-                                child: CupertinoActivityIndicator(
-                              animating: true,
-                              radius: 14,
-                            )),
-                          );
-                        }
-                        final bool download = snapshot.data?[index].url
-                                .toString()
-                                .toLowerCase()
-                                .contains(".pdf") ??
-                            false;
-                        return NoticeTile(
-                          download: download,
-                          document: snapshot.data?[index],
-                        );
-                      },
-                      childCount: snapshot.data?.length ?? 0,
-                    ),
-                  );
-                }
-                return SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (BuildContext context, int index) {
-                      return Material(
-                        color: Colors.transparent,
-                        child: SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.8,
-                          width: MediaQuery.of(context).size.width,
-                          child: const Center(
-                            child: CupertinoActivityIndicator(
-                              animating: true,
-                              radius: 20,
+                  ),
+                ),
+                StreamBuilder<List<Notice>>(
+                  stream: context.watch<FirestoreNotifier>().noticesStream,
+                  builder: (BuildContext context,
+                      AsyncSnapshot<List<Notice>> snapshot) {
+                    if (snapshot.hasError) {
+                      logger.e(snapshot.error);
+                      return SliverToBoxAdapter(
+                        child: Material(
+                          color: Colors.transparent,
+                          child: SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.8,
+                            width: MediaQuery.of(context).size.width,
+                            child: const Center(
+                              child: Icon(
+                                CupertinoIcons.multiply_circle,
+                                color: Colors.red,
+                              ),
                             ),
                           ),
                         ),
                       );
-                    },
-                    childCount: 1,
-                  ),
-                );
-              },
-            )
+                    }
+                    if (snapshot.hasData) {
+                      return SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (BuildContext context, int index) {
+                            if (index == (snapshot.data?.length ?? 0) - 1) {
+                              return const SizedBox(
+                                height: 100,
+                                width: 100,
+                                child: Center(
+                                    child: CupertinoActivityIndicator(
+                                  animating: true,
+                                  radius: 14,
+                                )),
+                              );
+                            }
+                            final bool download = snapshot.data?[index].url
+                                    .toString()
+                                    .toLowerCase()
+                                    .contains(".pdf") ??
+                                false;
+                            return NoticeTile(
+                              download: download,
+                              document: snapshot.data?[index],
+                            );
+                          },
+                          childCount: snapshot.data?.length ?? 0,
+                        ),
+                      );
+                    }
+                    return SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (BuildContext context, int index) {
+                          return Material(
+                            color: Colors.transparent,
+                            child: SizedBox(
+                              height: MediaQuery.of(context).size.height * 0.8,
+                              width: MediaQuery.of(context).size.width,
+                              child: const Center(
+                                child: CupertinoActivityIndicator(
+                                  animating: true,
+                                  radius: 20,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                        childCount: 1,
+                      ),
+                    );
+                  },
+                )
+              ],
+            ),
+            AnimatedPositioned(
+              curve: Curves.easeOutCubic,
+              duration: const Duration(milliseconds: 250),
+              bottom: showFab ? 20 : -50,
+              right: 20,
+              child: CupertinoButton.filled(
+                padding: EdgeInsets.zero,
+                borderRadius: BorderRadius.circular(500),
+                child: const Icon(
+                  CupertinoIcons.up_arrow,
+                ),
+                onPressed: () {
+                  setState(() {
+                    showFab = false;
+                    animating = true;
+                  });
+                  controller.animateTo(0,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOutCubic);
+                },
+              ),
+            ),
           ],
         ),
       ),
