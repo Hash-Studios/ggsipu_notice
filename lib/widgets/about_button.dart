@@ -26,7 +26,7 @@ class AboutButton extends StatelessWidget {
               barrierDismissible: true,
               builder: (BuildContext context) => const AboutDialog());
         },
-        icon: Icon(
+        icon: const Icon(
           // NeumorphicTheme.isUsingDark(context)
           // ? CupertinoIcons.info
           // :
@@ -46,44 +46,55 @@ class AboutDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final _themeService = locator<ThemeService>();
     return CupertinoAlertDialog(
-      title: Text("GGSIPU Notices v1.2.0-beta+14"),
+      title: const Text("GGSIPU Notices v1.2.0-beta+14"),
       content: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
-          Padding(
-              padding: EdgeInsets.only(top: 20),
-              child: Text("Developed and Maintained by")),
+          const Padding(
+            padding: EdgeInsets.only(top: 20),
+            child: Text("Developed and Maintained by"),
+          ),
           Padding(
             padding: const EdgeInsets.fromLTRB(10, 20, 10, 20),
             child: Material(
               elevation: 0,
-              color: Colors.white54,
+              color: _themeService.onBackground(context).withOpacity(0.1),
               borderRadius: BorderRadius.circular(20),
               child: ListTile(
                 leading: Container(
-                    padding: EdgeInsets.only(right: 12.0),
+                    padding: const EdgeInsets.only(right: 12.0),
                     decoration: BoxDecoration(
                       border: Border(
-                        right: BorderSide(width: 1.0, color: Colors.white54),
+                        right: BorderSide(
+                          width: 1.0,
+                          color: _themeService
+                              .onBackground(context)
+                              .withOpacity(0.24),
+                        ),
                       ),
                     ),
-                    child: CircleAvatar(
+                    child: const CircleAvatar(
                       backgroundImage: AssetImage("assets/images/dev.png"),
                     )),
                 title: Text(
                   "Abhay Maurya",
                   style: TextStyle(
-                      color: Colors.black87, fontWeight: FontWeight.bold),
+                      color:
+                          _themeService.onBackground(context).withOpacity(0.9),
+                      fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text(
                   "ECE, USICT",
-                  style: TextStyle(color: Colors.black87),
+                  style: TextStyle(
+                      color:
+                          _themeService.onBackground(context).withOpacity(0.9)),
                 ),
               ),
             ),
           ),
-          Text(
+          const Text(
             "This is an unofficial app.\nPlease give the repository a star if you like this app. 👍",
             style: TextStyle(fontSize: 12),
           ),
@@ -91,7 +102,7 @@ class AboutDialog extends StatelessWidget {
       ),
       actions: <Widget>[
         CupertinoDialogAction(
-          child: Text("Github"),
+          child: const Text("Github"),
           onPressed: () {
             Navigator.of(context).pop();
             String link = "https://www.github.com/LiquidatorCoder";
@@ -99,7 +110,7 @@ class AboutDialog extends StatelessWidget {
           },
         ),
         CupertinoDialogAction(
-          child: Text("LinkedIn"),
+          child: const Text("LinkedIn"),
           onPressed: () {
             Navigator.of(context).pop();
             String link = "https://www.linkedin.com/in/liquidatorcoder/";
@@ -108,7 +119,7 @@ class AboutDialog extends StatelessWidget {
         ),
         CupertinoDialogAction(
           isDestructiveAction: true,
-          child: Text("Back"),
+          child: const Text("Back"),
           onPressed: () {
             Navigator.of(context).pop();
           },
