@@ -22,12 +22,15 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   ScrollController controller = ScrollController();
   TextEditingController searchController = TextEditingController();
+  late FocusNode searchFocusNode;
   String? query;
   bool showFab = false;
+  bool showSearch = false;
   bool animating = false;
   @override
   void initState() {
     super.initState();
+    searchFocusNode = FocusNode();
     Future.delayed(const Duration())
         .then((value) => context.read<FirestoreNotifier>().initNoticeStream());
     controller.addListener(_scrollListener);
@@ -37,6 +40,23 @@ class _HomePageState extends State<HomePage> {
     if (controller.position.pixels <= 10 && animating) {
       setState(() {
         animating = false;
+      });
+    }
+    if (controller.position.pixels >= 100 && showSearch == false) {
+      logger.d("Search Shown");
+      setState(() {
+        showSearch = true;
+      });
+      FocusScopeNode currentFocus = FocusScope.of(context);
+
+      if (!currentFocus.hasPrimaryFocus) {
+        currentFocus.unfocus();
+      }
+    }
+    if (controller.position.pixels < 100 && showSearch == true) {
+      logger.d("Search Hidden");
+      setState(() {
+        showSearch = false;
       });
     }
     if (controller.position.pixels >= 380 && showFab == false && !animating) {
@@ -58,6 +78,14 @@ class _HomePageState extends State<HomePage> {
       });
       logger.i(context.read<FirestoreNotifier>().limit);
     }
+  }
+
+  @override
+  void dispose() {
+    searchFocusNode.dispose();
+    searchController.dispose();
+    controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -104,6 +132,34 @@ class _HomePageState extends State<HomePage> {
                               .withOpacity(0.1),
                           width: 1)),
                   automaticallyImplyLeading: false,
+                  trailing: showSearch
+                      ? Card(
+                          elevation: 0,
+                          color: Colors.transparent,
+                          child: IconButton(
+                            padding: const EdgeInsets.only(bottom: 2),
+                            highlightColor: Colors.transparent,
+                            hoverColor: Colors.transparent,
+                            splashColor: Colors.transparent,
+                            onPressed: () {
+                              setState(() {
+                                animating = true;
+                              });
+                              controller.animateTo(
+                                0,
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeOutCubic,
+                              );
+                              searchFocusNode.requestFocus();
+                            },
+                            icon: const Icon(
+                              CupertinoIcons.search,
+                            ),
+                            color: _themeService.onBackground(context),
+                            iconSize: 20,
+                          ),
+                        )
+                      : null,
                   padding: EdgeInsetsDirectional.zero,
                   stretch: true,
                   largeTitle: Text(
@@ -157,6 +213,7 @@ class _HomePageState extends State<HomePage> {
                         horizontal: 20.0, vertical: 20.0),
                     child: CupertinoSearchTextField(
                       controller: searchController,
+                      focusNode: searchFocusNode,
                       onChanged: (value) {
                         if (value.trim().isNotEmpty) {
                           setState(() {
