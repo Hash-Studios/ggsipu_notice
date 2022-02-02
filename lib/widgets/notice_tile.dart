@@ -314,10 +314,18 @@ class _NoticeTileState extends State<NoticeTile> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  timeago
-                          .format(DateTime.parse(
-                              widget.document?.createdAt.toString() ?? '0'))
-                          .contains('day')
+                  (timeago
+                              .format(DateTime.parse(
+                                  widget.document?.createdAt.toString() ?? '0'))
+                              .contains('day') ||
+                          timeago
+                              .format(DateTime.parse(
+                                  widget.document?.createdAt.toString() ?? '0'))
+                              .contains('month') ||
+                          timeago
+                              .format(DateTime.parse(
+                                  widget.document?.createdAt.toString() ?? '0'))
+                              .contains('year'))
                       ? "${widget.document?.date.split('-')[0]} ${DateFormat('MMM').format(DateTime(0, int.parse(widget.document?.date.split('-')[1] ?? '0')))}"
                       : timeago
                           .format(DateTime.parse(
