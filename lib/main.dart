@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:ip_notices/keys.dart';
+import 'package:ip_notices/notifiers/algolia_notifier.dart';
 import 'package:ip_notices/notifiers/firestore_notifier.dart';
 import 'package:ip_notices/pages/home_page.dart';
 import 'package:ip_notices/services/locator.dart';
@@ -25,6 +26,7 @@ void main() async {
   runApp(MultiProvider(providers: [
     ChangeNotifierProvider<FirestoreNotifier>(
         create: (_) => FirestoreNotifier()),
+    ChangeNotifierProvider<AlgoliaNotifier>(create: (_) => AlgoliaNotifier()),
   ], child: const MyApp()));
 }
 

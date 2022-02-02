@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:ip_notices/models/notice.dart';
+import 'package:ip_notices/notifiers/algolia_notifier.dart';
 import 'package:ip_notices/notifiers/firestore_notifier.dart';
 import 'package:ip_notices/services/locator.dart';
 import 'package:ip_notices/services/logger.dart';
@@ -20,6 +21,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   ScrollController controller = ScrollController();
+  TextEditingController searchController = TextEditingController();
+  String? query;
   bool showFab = false;
   bool animating = false;
   @override
@@ -148,79 +151,190 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-                StreamBuilder<List<Notice>>(
-                  stream: context.watch<FirestoreNotifier>().noticesStream,
-                  builder: (BuildContext context,
-                      AsyncSnapshot<List<Notice>> snapshot) {
-                    if (snapshot.hasError) {
-                      logger.e(snapshot.error);
-                      return SliverToBoxAdapter(
-                        child: Material(
-                          color: Colors.transparent,
-                          child: SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.8,
-                            width: MediaQuery.of(context).size.width,
-                            child: const Center(
-                              child: Icon(
-                                CupertinoIcons.multiply_circle,
-                                color: Colors.red,
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }
-                    if (snapshot.hasData) {
-                      return SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (BuildContext context, int index) {
-                            if (index == (snapshot.data?.length ?? 0) - 1) {
-                              return const SizedBox(
-                                height: 100,
-                                width: 100,
-                                child: Center(
-                                    child: CupertinoActivityIndicator(
-                                  animating: true,
-                                  radius: 14,
-                                )),
-                              );
-                            }
-                            final bool download = snapshot.data?[index].url
-                                    .toString()
-                                    .toLowerCase()
-                                    .contains(".pdf") ??
-                                false;
-                            return NoticeTile(
-                              download: download,
-                              document: snapshot.data?[index],
-                            );
-                          },
-                          childCount: snapshot.data?.length ?? 0,
-                        ),
-                      );
-                    }
-                    return SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (BuildContext context, int index) {
-                          return Material(
-                            color: Colors.transparent,
-                            child: SizedBox(
-                              height: MediaQuery.of(context).size.height * 0.8,
-                              width: MediaQuery.of(context).size.width,
-                              child: const Center(
-                                child: CupertinoActivityIndicator(
-                                  animating: true,
-                                  radius: 20,
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20.0, vertical: 20.0),
+                    child: CupertinoSearchTextField(
+                      controller: searchController,
+                      onChanged: (value) {
+                        if (value.trim().isNotEmpty) {
+                          setState(() {
+                            query = value;
+                          });
+                          context
+                              .read<AlgoliaNotifier>()
+                              .getNoticeSearch(value);
+                        }
+                      },
+                      onSubmitted: (value) {
+                        if (value.trim().isNotEmpty) {
+                          setState(() {
+                            query = value;
+                          });
+                          context
+                              .read<AlgoliaNotifier>()
+                              .getNoticeSearch(value);
+                        }
+                      },
+                      autocorrect: true,
+                      style: TextStyle(
+                        color: _themeService.onBackground(context),
+                      ),
+                    ),
+                  ),
+                ),
+                (searchController.text.trim().isNotEmpty)
+                    ? () {
+                        final snapshot =
+                            context.watch<AlgoliaNotifier>().snapshot;
+                        if (snapshot?.empty ?? false) {
+                          // logger.e(snapshot.error);
+                          return SliverToBoxAdapter(
+                            child: Material(
+                              color: Colors.transparent,
+                              child: SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.8,
+                                width: MediaQuery.of(context).size.width,
+                                child: const Center(
+                                  child: Icon(
+                                    CupertinoIcons.multiply_circle,
+                                    color: Colors.red,
+                                  ),
                                 ),
                               ),
                             ),
                           );
+                        }
+                        if (snapshot?.hits.isNotEmpty ?? false) {
+                          return SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (BuildContext context, int index) {
+                                if (index == (snapshot?.hits.length ?? 0)) {
+                                  return const SizedBox(
+                                    height: 100,
+                                    width: 100,
+                                  );
+                                }
+                                final bool? download = snapshot
+                                    ?.hits[index].data['url']
+                                    .toString()
+                                    .toLowerCase()
+                                    .contains(".pdf");
+                                final Map? map = snapshot?.hits[index].data;
+                                return NoticeTile(
+                                  key: ValueKey(map?['title']),
+                                  download: download ?? false,
+                                  document: Notice.fromJson(
+                                      map as Map<String, dynamic>),
+                                );
+                              },
+                              childCount: (snapshot?.hits.length ?? 0) + 1,
+                            ),
+                          );
+                        }
+                        return SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (BuildContext context, int index) {
+                              return Material(
+                                color: Colors.transparent,
+                                child: SizedBox(
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.8,
+                                  width: MediaQuery.of(context).size.width,
+                                  child: const Center(
+                                    child: CupertinoActivityIndicator(
+                                      animating: true,
+                                      radius: 20,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                            childCount: 1,
+                          ),
+                        );
+                      }()
+                    : StreamBuilder<List<Notice>>(
+                        stream:
+                            context.watch<FirestoreNotifier>().noticesStream,
+                        builder: (BuildContext context,
+                            AsyncSnapshot<List<Notice>> snapshot) {
+                          if (snapshot.hasError) {
+                            logger.e(snapshot.error);
+                            return SliverToBoxAdapter(
+                              child: Material(
+                                color: Colors.transparent,
+                                child: SizedBox(
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.8,
+                                  width: MediaQuery.of(context).size.width,
+                                  child: const Center(
+                                    child: Icon(
+                                      CupertinoIcons.multiply_circle,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+                          if (snapshot.hasData) {
+                            return SliverList(
+                              delegate: SliverChildBuilderDelegate(
+                                (BuildContext context, int index) {
+                                  if (index ==
+                                      (snapshot.data?.length ?? 0) - 1) {
+                                    return const SizedBox(
+                                      height: 100,
+                                      width: 100,
+                                      child: Center(
+                                          child: CupertinoActivityIndicator(
+                                        animating: true,
+                                        radius: 14,
+                                      )),
+                                    );
+                                  }
+                                  final bool download = snapshot
+                                          .data?[index].url
+                                          .toString()
+                                          .toLowerCase()
+                                          .contains(".pdf") ??
+                                      false;
+                                  return NoticeTile(
+                                    key: ValueKey(snapshot.data?[index].title),
+                                    download: download,
+                                    document: snapshot.data?[index],
+                                  );
+                                },
+                                childCount: snapshot.data?.length ?? 0,
+                              ),
+                            );
+                          }
+                          return SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (BuildContext context, int index) {
+                                return Material(
+                                  color: Colors.transparent,
+                                  child: SizedBox(
+                                    height: MediaQuery.of(context).size.height *
+                                        0.8,
+                                    width: MediaQuery.of(context).size.width,
+                                    child: const Center(
+                                      child: CupertinoActivityIndicator(
+                                        animating: true,
+                                        radius: 20,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                              childCount: 1,
+                            ),
+                          );
                         },
-                        childCount: 1,
-                      ),
-                    );
-                  },
-                )
+                      )
               ],
             ),
             AnimatedPositioned(
