@@ -170,43 +170,43 @@ class _HomePageState extends State<HomePage> {
                   ),
                   backgroundColor: _themeService.background(context),
                 ),
-                SliverToBoxAdapter(
-                  child: Material(
-                    color: _themeService.background(context),
-                    child: InkWell(
-                      onTap: () {
-                        context.read<FirestoreNotifier>().togglePriorityCheck();
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
-                        child: Row(
-                          children: [
-                            Text(
-                              context.watch<FirestoreNotifier>().priorityCheck
-                                  ? "Priority"
-                                  : "Latest",
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                                color: _themeService.onBackground(context),
-                              ),
-                            ),
-                            const Spacer(),
-                            Icon(
-                              context.watch<FirestoreNotifier>().priorityCheck
-                                  ? CupertinoIcons.star
-                                  : CupertinoIcons.time,
-                              color: _themeService
-                                  .onBackground(context)
-                                  .withOpacity(0.8),
-                              size: 18,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+                // SliverToBoxAdapter(
+                //   child: Material(
+                //     color: _themeService.background(context),
+                //     child: InkWell(
+                //       onTap: () {
+                //         context.read<FirestoreNotifier>().togglePriorityCheck();
+                //       },
+                //       child: Padding(
+                //         padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                //         child: Row(
+                //           children: [
+                //             Text(
+                //               context.watch<FirestoreNotifier>().priorityCheck
+                //                   ? "Priority"
+                //                   : "Latest",
+                //               style: TextStyle(
+                //                 fontWeight: FontWeight.w600,
+                //                 fontSize: 14,
+                //                 color: _themeService.onBackground(context),
+                //               ),
+                //             ),
+                //             const Spacer(),
+                //             Icon(
+                //               context.watch<FirestoreNotifier>().priorityCheck
+                //                   ? CupertinoIcons.star
+                //                   : CupertinoIcons.time,
+                //               color: _themeService
+                //                   .onBackground(context)
+                //                   .withOpacity(0.8),
+                //               size: 18,
+                //             ),
+                //           ],
+                //         ),
+                //       ),
+                //     ),
+                //   ),
+                // ),
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
