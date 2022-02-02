@@ -22,8 +22,7 @@ Notice _$NoticeFromJson(Map<String, dynamic> json) {
     title: json['title'] as String,
     url: json['url'] as String,
     date: json['date'] as String,
-    createdAt:
-        const TimestampConverter().fromJson(json['createdAt'] as Timestamp),
+    createdAt: const TimestampConverter().fromJson(json['createdAt']),
     priority: json['priority'] as bool,
     color: json['color'] as String,
     college: json['college'] as String?,
