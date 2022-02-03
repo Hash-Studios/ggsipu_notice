@@ -326,7 +326,10 @@ class _NoticeTileState extends State<NoticeTile> {
                               .format(DateTime.parse(
                                   widget.document?.createdAt.toString() ?? '0'))
                               .contains('year'))
-                      ? "${widget.document?.date.split('-')[0]} ${DateFormat('MMM').format(DateTime(0, int.parse(widget.document?.date.split('-')[1] ?? '0')))}"
+                      ? widget.document?.date.isNotEmpty == true
+                          ? "${widget.document?.date.split('-')[0]} ${DateFormat('MMM').format(DateTime(0, int.parse(widget.document?.date.split('-')[1] ?? '0')))}"
+                          : DateFormat('dd MMM').format(
+                              widget.document?.createdAt ?? DateTime.now())
                       : timeago
                           .format(DateTime.parse(
                               widget.document?.createdAt.toString() ?? '0'))

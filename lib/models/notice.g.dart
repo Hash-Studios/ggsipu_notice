@@ -12,18 +12,16 @@ Notice _$NoticeFromJson(Map<String, dynamic> json) {
     requiredKeys: const [
       'title',
       'url',
-      'date',
       'createdAt',
-      'priority',
-      'color'
+      'color',
     ],
   );
   return Notice(
     title: json['title'] as String,
     url: json['url'] as String,
-    date: json['date'] as String,
+    date: (json['date'] ?? '') as String,
     createdAt: const TimestampConverter().fromJson(json['createdAt']),
-    priority: json['priority'] as bool,
+    priority: (json['priority'] ?? false) as bool,
     color: json['color'] as String,
     college: json['college'] as String?,
     tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String?).toList(),

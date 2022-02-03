@@ -53,8 +53,10 @@ class TimestampConverter implements JsonConverter<DateTime, Timestamp> {
   DateTime fromJson(Object timestamp) {
     if (timestamp is Timestamp) {
       return timestamp.toDate();
-    } else {
+    } else if (timestamp is String) {
       return DateTime.parse(timestamp.toString());
+    } else {
+      return DateTime.fromMillisecondsSinceEpoch(timestamp as int);
     }
   }
 
