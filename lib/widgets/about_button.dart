@@ -48,7 +48,7 @@ class AboutDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final _themeService = locator<ThemeService>();
     return CupertinoAlertDialog(
-      title: const Text("GGSIPU Notices v1.3.1-beta+16"),
+      title: const Text("GGSIPU Notices v1.3.1-beta+17"),
       content: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
