@@ -1,6 +1,6 @@
 # <img src="android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png" alt="icon" width=30> GGSIPU Noticeboard App
 
-This is a beautiful neumorphic noticeboard app for Guru Gobind Singh Indraprastha University. This works on both Android and iOS.
+This is a beautiful minimal noticeboard app for Guru Gobind Singh Indraprastha University. This works on both Android and iOS.
 >This is an unofficial App.
 
 ![flutter](https://img.shields.io/badge/Flutter-Framework-green?logo=flutter)
@@ -10,7 +10,7 @@ This is a beautiful neumorphic noticeboard app for Guru Gobind Singh Indraprasth
 ![License](https://img.shields.io/github/license/Hash-Studios/ggsipu_notice)
 ![Stars](https://img.shields.io/github/stars/Hash-Studios/ggsipu_notice)
 
-![ggsipu_notice UI Mockup](demo/GGSIPU_Mockup.jpg)
+![ggsipu_notice UI Mockup](demo/GGSIPU_Mockup.png)
 
 
 This app gets its source of notices from a Python and Flask server which I have deployed on Heroku. That server scrapes IP University's website every minute and updates the FireBase database and also sends a notification to the user if any new notice is found. The app provides the user with a fast and smooth experience filled with subtle animations and minimal design.
@@ -28,7 +28,7 @@ This app gets its source of notices from a Python and Flask server which I have 
 
 ## Features
 
-- Clean Neumorphic design
+- Clean minimal design
 - Auto Dark Mode
 - Instantly view or download notices in one tap
 - Push Notifications for new notices
