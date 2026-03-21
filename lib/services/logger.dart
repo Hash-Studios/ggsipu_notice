@@ -26,7 +26,7 @@ class LogOutputPrinter extends PrettyPrinter {
   late String _logFolderPath;
   RandomAccessFile? _logFile;
 
-  LogOutputPrinter() {
+  LogOutputPrinter() : super(dateTimeFormat: DateTimeFormat.onlyTime) {
     if (!Platform.isWindows) {
       getExternalStorageDirectory().then((cacheDir) async {
         if (cacheDir == null) {
@@ -58,26 +58,27 @@ class LogOutputPrinter extends PrettyPrinter {
     final logLvl = event.level;
     final logStrace = event.stackTrace;
     final logError = event.error;
-    final color = PrettyPrinter.levelColors[logLvl];
+    final color = levelColors?[logLvl];
     final prefix = SimplePrinter.levelPrefixes[logLvl];
     final str =
         "---------------------------------------------------------------------------\nLEVEL : $logLvl\nMESSAGE : ${DateTime.now().toString().substring(11, 22)} :: $logMsg\nERROR : $logError\nSTACKTRACE : $logStrace";
     Future.delayed(const Duration(seconds: 1))
         .then((value) => _logFile?.writeStringSync('$str\n'));
-    final timeStr = getTime().substring(0, 12);
+    final timeStr = DateTime.now().toIso8601String().substring(11, 23);
+    final prefixStr = (prefix ?? '[$logLvl]')
+        .replaceAll("[", "")
+        .replaceAll("]", "");
     if (logStrace != null) {
-      // print(color!('$timeStr $prefix - $logMsg \n$logStrace'));
       developer.log(
-        color!('$logMsg \n$logError'),
-        name: "$timeStr :: ${prefix!.replaceAll("[", "").replaceAll("]", "")}",
+        color?.call('$logMsg \n$logError') ?? '$logMsg \n$logError',
+        name: "$timeStr :: $prefixStr",
         stackTrace: logStrace,
         level: 2000,
       );
     } else {
-      // print(color!('$timeStr $prefix - $logMsg'));
       developer.log(
-        color!('$logMsg'),
-        name: "$timeStr :: ${prefix!.replaceAll("[", "").replaceAll("]", "")}",
+        color?.call('$logMsg') ?? '$logMsg',
+        name: "$timeStr :: $prefixStr",
       );
     }
     return [];

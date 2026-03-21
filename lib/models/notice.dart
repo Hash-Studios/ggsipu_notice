@@ -39,7 +39,7 @@ class Notice {
 
   factory Notice.fromJson(Map<String, dynamic> json) {
     json['color'] = Colors.primaries[Random().nextInt(Colors.primaries.length)]
-        .withOpacity(0.3)
+        .withValues(alpha: 0.3)
         .toHex();
     return _$NoticeFromJson(json);
   }
@@ -75,8 +75,8 @@ extension HexColor on Color {
 
   /// Prefixes a hash sign if [leadingHashSign] is set to `true` (default is `true`).
   String toHex({bool leadingHashSign = true}) => '${leadingHashSign ? '#' : ''}'
-      '${alpha.toRadixString(16).padLeft(2, '0')}'
-      '${red.toRadixString(16).padLeft(2, '0')}'
-      '${green.toRadixString(16).padLeft(2, '0')}'
-      '${blue.toRadixString(16).padLeft(2, '0')}';
+      '${(a * 255.0).round().clamp(0, 255).toRadixString(16).padLeft(2, '0')}'
+      '${(r * 255.0).round().clamp(0, 255).toRadixString(16).padLeft(2, '0')}'
+      '${(g * 255.0).round().clamp(0, 255).toRadixString(16).padLeft(2, '0')}'
+      '${(b * 255.0).round().clamp(0, 255).toRadixString(16).padLeft(2, '0')}';
 }

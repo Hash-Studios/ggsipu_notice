@@ -2,9 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class LoadingSliver extends StatelessWidget {
-  const LoadingSliver({
-    Key? key,
-  }) : super(key: key);
+  const LoadingSliver({super.key});
 
   @override
   Widget build(BuildContext context) {

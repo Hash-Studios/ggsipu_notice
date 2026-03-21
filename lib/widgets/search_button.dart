@@ -5,15 +5,15 @@ import 'package:ip_notices/services/theme_service.dart';
 
 class SearchButton extends StatelessWidget {
   const SearchButton({
-    Key? key,
+    super.key,
     required this.onPressed,
-  }) : super(key: key);
+  });
 
   final Null Function() onPressed;
 
   @override
   Widget build(BuildContext context) {
-    final _themeService = locator<ThemeService>();
+    final themeService = locator<ThemeService>();
     return Card(
       elevation: 0,
       color: Colors.transparent,
@@ -26,7 +26,7 @@ class SearchButton extends StatelessWidget {
         icon: const Icon(
           CupertinoIcons.search,
         ),
-        color: _themeService.onBackground(context),
+        color: themeService.onBackground(context),
         iconSize: 20,
       ),
     );

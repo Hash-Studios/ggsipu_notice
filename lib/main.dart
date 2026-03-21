@@ -10,6 +10,7 @@ import 'package:ip_notices/pages/home_page.dart';
 import 'package:ip_notices/services/locator.dart';
 import 'package:ip_notices/services/logger.dart';
 import 'package:ip_notices/services/theme_service.dart';
+import 'package:oktoast/oktoast.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,16 +24,19 @@ void main() async {
   prefs = await SharedPreferences.getInstance();
   await FlutterDownloader.initialize();
   oneSignalSetup();
-  runApp(MultiProvider(providers: [
-    ChangeNotifierProvider<FirestoreNotifier>(
-        create: (_) => FirestoreNotifier()),
-    ChangeNotifierProvider<AlgoliaNotifier>(create: (_) => AlgoliaNotifier()),
-  ], child: const MyApp()));
+  runApp(OKToast(
+    child: MultiProvider(providers: [
+      ChangeNotifierProvider<FirestoreNotifier>(
+          create: (_) => FirestoreNotifier()),
+      ChangeNotifierProvider<AlgoliaNotifier>(
+          create: (_) => AlgoliaNotifier()),
+    ], child: const MyApp()),
+  ));
 }
 
 void oneSignalSetup() {
-  OneSignal.shared.setLogLevel(OSLogLevel.fatal, OSLogLevel.none);
-  OneSignal.shared.setAppId(oneSignalAppID);
+  OneSignal.Debug.setLogLevel(OSLogLevel.fatal);
+  OneSignal.initialize(oneSignalAppID);
 }
 
 Future<void> setRefreshRate() async {
@@ -42,7 +46,7 @@ Future<void> setRefreshRate() async {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {

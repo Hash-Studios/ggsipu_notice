@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide SearchBar;
 import 'package:flutter/services.dart';
 import 'package:ip_notices/models/notice.dart';
 import 'package:ip_notices/notifiers/algolia_notifier.dart';
@@ -17,10 +17,10 @@ import 'package:ip_notices/widgets/search_button.dart';
 import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
-  _HomePageState createState() => _HomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
@@ -81,8 +81,9 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     searchFocusNode = FocusNode();
-    Future.delayed(const Duration())
-        .then((value) => context.read<FirestoreNotifier>().initNoticeStream());
+    Future.delayed(const Duration()).then((value) {
+      if (mounted) context.read<FirestoreNotifier>().initNoticeStream();
+    });
     controller.addListener(_scrollListener);
   }
 
@@ -96,7 +97,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final _themeService = locator<ThemeService>();
+    final themeService = locator<ThemeService>();
 
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(
@@ -144,7 +145,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     return CupertinoPageScaffold(
-      backgroundColor: _themeService.background(context),
+      backgroundColor: themeService.background(context),
       child: SafeArea(
         child: Stack(
           children: [
@@ -166,9 +167,9 @@ class _HomePageState extends State<HomePage> {
                   leading: const AboutButton(),
                   border: Border(
                       bottom: BorderSide(
-                          color: _themeService
+                          color: themeService
                               .onBackground(context)
-                              .withOpacity(0.1),
+                              .withValues(alpha: 0.1),
                           width: 1)),
                   automaticallyImplyLeading: false,
                   trailing: AnimatedSwitcher(
@@ -188,10 +189,10 @@ class _HomePageState extends State<HomePage> {
                   largeTitle: Text(
                     'Notices',
                     style: TextStyle(
-                      color: _themeService.onBackground(context),
+                      color: themeService.onBackground(context),
                     ),
                   ),
-                  backgroundColor: _themeService.background(context),
+                  backgroundColor: themeService.background(context),
                 ),
                 SearchBar(
                   searchController: searchController,
