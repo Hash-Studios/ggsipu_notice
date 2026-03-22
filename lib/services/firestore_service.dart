@@ -16,14 +16,16 @@ class FirestoreService {
     noticesStream = priorityCheck
         ? FirebaseFirestore.instance
             .collection('notices')
-            .orderBy('createdAt', descending: true)
+            .where('isArchived', isEqualTo: false)
             .where('priority', isEqualTo: true)
+            .orderBy('createdAt', descending: true)
             .limit(limit)
             .snapshots()
             .map((event) =>
                 event.docs.map((doc) => Notice.fromJson(doc.data())).toList())
         : FirebaseFirestore.instance
             .collection('notices')
+            .where('isArchived', isEqualTo: false)
             .orderBy('createdAt', descending: true)
             .limit(limit)
             .snapshots()

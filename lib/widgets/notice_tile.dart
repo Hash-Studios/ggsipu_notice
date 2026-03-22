@@ -14,7 +14,6 @@ import 'package:ip_notices/services/locator.dart';
 import 'package:ip_notices/services/logger.dart';
 import 'package:ip_notices/services/theme_service.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:url_launcher/url_launcher.dart';
@@ -86,8 +85,9 @@ class _NoticeTileState extends State<NoticeTile> {
   }
 
   Future<String> _findLocalPath() async {
-    final directory = await getExternalStorageDirectory();
-    return directory?.path ?? '';
+    final directory = await getExternalStorageDirectory()
+        ?? await getApplicationDocumentsDirectory();
+    return directory.path;
   }
 
   @override
@@ -105,35 +105,29 @@ class _NoticeTileState extends State<NoticeTile> {
             icon: CupertinoIcons.cloud_download,
             onPressed: (context) async {
               if (widget.download) {
-                var status = await Permission.storage.status;
-                if (!status.isGranted) {
-                  await Permission.storage.request();
+                // path_provider's getExternalStorageDirectory() returns the
+                // app-specific directory which needs no storage permission
+                // on Android 4.4+ (API 19+, our minSdk).
+                try {
+                  final String link = widget.document?.url ?? '';
+                  final String localPath = '${await _findLocalPath()}/Notices';
+                  await Directory(localPath).create(recursive: true);
+                  final String name = Random().nextInt(1000000000).toString();
+                  final taskId = await FlutterDownloader.enqueue(
+                    url: link,
+                    fileName:
+                        '${widget.document?.title.toString().replaceAll("/", "").replaceAll("\\", "")} $name.pdf',
+                    savedDir: localPath,
+                    showNotification: true,
+                    openFileFromNotification: true,
+                  );
+                  logger.d("Task Id - $taskId | Path - $localPath");
+                } catch (e) {
+                  logger.e('Download failed: $e');
+                  showToast('Download failed. Try opening instead.');
                 }
-                String link = "http://www.ipu.ac.in${widget.document?.url}";
-                String localPath = '${await _findLocalPath()}/Notices';
-                final savedDir = Directory(localPath);
-                bool hasExisted = await savedDir.exists();
-                if (!hasExisted) {
-                  savedDir.create();
-                }
-                final f = Random();
-                String name = "";
-                for (int i = 0; i < 10; i++) {
-                  name = name + f.nextInt(9).toString();
-                }
-                final taskId = await FlutterDownloader.enqueue(
-                  url: link,
-                  fileName:
-                      '${widget.document?.title.toString().replaceAll("/", "")} $name.pdf',
-                  savedDir: localPath,
-                  showNotification: true,
-                  openFileFromNotification: true,
-                );
-                logger.d("Task Id - $taskId");
-                logger.d("Local Path - $localPath");
               } else {
-                String link = "http://www.ipu.ac.in${widget.document?.url}";
-                _launchURL(link);
+                _launchURL(widget.document?.url ?? '');
               }
             },
           ),
@@ -149,7 +143,7 @@ class _NoticeTileState extends State<NoticeTile> {
             foregroundColor: themeService.onAccent(context),
             icon: CupertinoIcons.share,
             onPressed: (_) {
-              String link = "http://www.ipu.ac.in${widget.document?.url}";
+              String link = widget.document?.url ?? '';
               Share.share("$link\n${widget.document?.title}");
             },
           ),
@@ -190,7 +184,7 @@ class _NoticeTileState extends State<NoticeTile> {
               );
             },
             onTap: () {
-              String link = "http://www.ipu.ac.in${widget.document?.url}";
+              String link = widget.document?.url ?? '';
               _launchURL(link);
             },
             contentPadding: const EdgeInsets.fromLTRB(20, 10, 20, 10),

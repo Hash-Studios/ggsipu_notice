@@ -25,6 +25,8 @@ class Notice {
   String? college;
   @JsonKey()
   List<String?>? tags;
+  @JsonKey(defaultValue: false)
+  bool isArchived;
 
   Notice({
     required this.title,
@@ -35,13 +37,31 @@ class Notice {
     required this.color,
     this.college,
     this.tags,
+    this.isArchived = false,
   });
 
   factory Notice.fromJson(Map<String, dynamic> json) {
     json['color'] = Colors.primaries[Random().nextInt(Colors.primaries.length)]
         .withValues(alpha: 0.3)
         .toHex();
+    // Algolia hits don't have createdAt — fall back to parsing the date string
+    if (!json.containsKey('createdAt') || json['createdAt'] == null) {
+      json['createdAt'] = _dateStringToMillis(json['date'] as String? ?? '');
+    }
     return _$NoticeFromJson(json);
+  }
+
+  static int _dateStringToMillis(String date) {
+    try {
+      final parts = date.split('-');
+      return DateTime(
+        int.parse(parts[2]),
+        int.parse(parts[1]),
+        int.parse(parts[0]),
+      ).millisecondsSinceEpoch;
+    } catch (_) {
+      return DateTime.now().millisecondsSinceEpoch;
+    }
   }
   Map<String, dynamic> toJson() => _$NoticeToJson(this);
 }

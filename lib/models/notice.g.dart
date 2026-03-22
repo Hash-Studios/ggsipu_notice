@@ -25,6 +25,7 @@ Notice _$NoticeFromJson(Map<String, dynamic> json) {
     color: json['color'] as String,
     college: json['college'] as String?,
     tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String?).toList(),
+    isArchived: (json['isArchived'] ?? false) as bool,
   );
 }
 
@@ -37,4 +38,5 @@ Map<String, dynamic> _$NoticeToJson(Notice instance) => <String, dynamic>{
       'color': instance.color,
       'college': instance.college,
       'tags': instance.tags,
+      'isArchived': instance.isArchived,
     };
