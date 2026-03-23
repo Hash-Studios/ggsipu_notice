@@ -95,7 +95,7 @@ class _NoticeTileState extends State<NoticeTile> {
     return Slidable(
       startActionPane: ActionPane(
         motion: const BehindMotion(),
-        extentRatio: 0.25,
+        extentRatio: 0.4,
         children: [
           SlidableAction(
             label: 'Download',
@@ -134,7 +134,7 @@ class _NoticeTileState extends State<NoticeTile> {
       ),
       endActionPane: ActionPane(
         motion: const BehindMotion(),
-        extentRatio: 0.25,
+        extentRatio: 0.3,
         children: [
           SlidableAction(
             label: 'Share',
