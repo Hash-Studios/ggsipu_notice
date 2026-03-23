@@ -41,21 +41,22 @@ class AboutDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeService = locator<ThemeService>();
     return CupertinoAlertDialog(
-      title: const Text("GGSIPU Notices v1.3.1-beta+17"),
+      title: const Text("GGSIPU Notices v1.3.1+19"),
       content: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
           const Padding(
-            padding: EdgeInsets.only(top: 20),
+            padding: EdgeInsets.only(top: 12),
             child: Text("Developed and Maintained by"),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(10, 20, 10, 20),
+            padding: const EdgeInsets.fromLTRB(10, 16, 10, 20),
             child: Material(
               elevation: 0,
               color: themeService.onBackground(context).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
               child: ListTile(
+                contentPadding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
                 leading: Container(
                     padding: const EdgeInsets.only(right: 12.0),
                     decoration: BoxDecoration(
@@ -80,7 +81,7 @@ class AboutDialog extends StatelessWidget {
                       fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text(
-                  "ECE, USICT",
+                  "ex-USICTian",
                   style: TextStyle(
                       color: themeService
                           .onBackground(context)
@@ -108,6 +109,13 @@ class AboutDialog extends StatelessWidget {
           onPressed: () {
             Navigator.of(context).pop();
             _launchURL("https://www.linkedin.com/in/liquidatorcoder/");
+          },
+        ),
+         CupertinoDialogAction(
+          child: const Text("Twitter"),
+          onPressed: () {
+            Navigator.of(context).pop();
+            _launchURL("https://www.twitter.com/liquidatorAB_/");
           },
         ),
         CupertinoDialogAction(
