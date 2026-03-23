@@ -189,6 +189,7 @@ def _send_notification(fs_client, title: str, body: str, url: str, tokens: list)
         msg = messaging.MulticastMessage(
             notification=messaging.Notification(title=title, body=body),
             data={"url": url},
+            android=messaging.AndroidConfig(priority="high"),
             tokens=chunk,
         )
         resp = messaging.send_each_for_multicast(msg)
