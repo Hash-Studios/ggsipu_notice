@@ -267,6 +267,7 @@ class _NoticeTileState extends State<NoticeTile> {
                     //   )
                     : null
                 : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         widget.document?.title ?? '',
