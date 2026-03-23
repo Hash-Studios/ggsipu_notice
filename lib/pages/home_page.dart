@@ -199,6 +199,43 @@ class _HomePageState extends State<HomePage> {
                   searchFocusNode: searchFocusNode,
                   onChanged: onChanged,
                 ),
+                 SliverToBoxAdapter(
+                  child: Material(
+                    color: themeService.background(context),
+                    child: InkWell(
+                      onTap: () {
+                        context.read<FirestoreNotifier>().togglePriorityCheck();
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+                        child: Row(
+                          children: [
+                            Text(
+                              context.watch<FirestoreNotifier>().priorityCheck
+                                  ? "Priority"
+                                  : "Latest",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                color: themeService.onBackground(context),
+                              ),
+                            ),
+                            const Spacer(),
+                            Icon(
+                              context.watch<FirestoreNotifier>().priorityCheck
+                                  ? CupertinoIcons.star
+                                  : CupertinoIcons.time,
+                              color: themeService
+                                  .onBackground(context)
+                                  .withValues(alpha: 0.8),
+                              size: 18,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
                 (searchController.text.trim().isNotEmpty)
                     ? () {
                         final snapshot =
