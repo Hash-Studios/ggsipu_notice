@@ -16,21 +16,23 @@ class FirestoreService {
     noticesStream = priorityCheck
         ? FirebaseFirestore.instance
             .collection('notices')
-            .where('isArchived', isEqualTo: false)
             .where('priority', isEqualTo: true)
             .orderBy('createdAt', descending: true)
             .limit(limit)
             .snapshots()
-            .map((event) =>
-                event.docs.map((doc) => Notice.fromJson(doc.data())).toList())
+            .map((event) => event.docs
+                .map((doc) => Notice.fromJson(doc.data()))
+                .toList()
+              ..sort((a, b) => _parseDate(b.date).compareTo(_parseDate(a.date))))
         : FirebaseFirestore.instance
             .collection('notices')
-            .where('isArchived', isEqualTo: false)
             .orderBy('createdAt', descending: true)
             .limit(limit)
             .snapshots()
-            .map((event) =>
-                event.docs.map((doc) => Notice.fromJson(doc.data())).toList());
+            .map((event) => event.docs
+                .map((doc) => Notice.fromJson(doc.data()))
+                .toList()
+              ..sort((a, b) => _parseDate(b.date).compareTo(_parseDate(a.date))));
   }
 
   void loadMore() {
@@ -41,5 +43,14 @@ class FirestoreService {
   void togglePriorityCheck() {
     priorityCheck = !priorityCheck;
     initNoticeStream(false);
+  }
+
+  static DateTime _parseDate(String date) {
+    try {
+      final parts = date.split('-');
+      return DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+    } catch (_) {
+      return DateTime(2000);
+    }
   }
 }

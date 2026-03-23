@@ -1,5 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_database/firebase_database.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -72,7 +72,7 @@ Future<void> setupFirebaseMessaging() async {
     _openNoticeUrl(message.data['url']);
   });
 
-  // Register FCM token with RTDB so the backend can send notifications
+  // Register FCM token with Firestore so the backend can send notifications
   await _registerFcmToken(messaging);
   messaging.onTokenRefresh.listen(_registerFcmToken);
 }
@@ -82,7 +82,10 @@ Future<void> _registerFcmToken(dynamic tokenOrMessaging) async {
       ? tokenOrMessaging
       : await (tokenOrMessaging as FirebaseMessaging).getToken();
   if (token == null) return;
-  await FirebaseDatabase.instance.ref('users/$token').set(true);
+  await FirebaseFirestore.instance
+      .collection('fcm_tokens')
+      .doc(token)
+      .set({'active': true, 'updatedAt': FieldValue.serverTimestamp()});
   logger.i('FCM token registered: $token');
 }
 

@@ -30,7 +30,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace "com.hash.ggsipu_noticeboard"
+    namespace "com.hash.ipunotices"
     compileSdk 36
 
     compileOptions {
@@ -47,7 +47,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.hash.ggsipu_noticeboard"
+        applicationId "com.hash.ipunotices"
         minSdkVersion flutter.minSdkVersion
         targetSdk 36
         multiDexEnabled true
@@ -67,6 +67,8 @@ android {
     buildTypes {
         release {
             signingConfig signingConfigs.release
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 }
