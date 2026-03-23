@@ -1,5 +1,11 @@
 {
   "projects": {
     "default": "ggsipu-notice"
+  },
+  "targets": {},
+  "etags": {
+    "ggsipu-notice": {
+      "extensionInstances": {}
+    }
   }
 }

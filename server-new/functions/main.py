@@ -2,8 +2,9 @@ import hashlib
 import logging
 import time
 import firebase_admin
-from firebase_admin import db, firestore, messaging
+from firebase_admin import firestore, messaging
 from firebase_functions import scheduler_fn
+from algoliasearch.search.client import SearchClientSync
 from bs4 import BeautifulSoup
 from urllib import parse
 import requests
@@ -16,6 +17,10 @@ log = logging.getLogger(__name__)
 NOTICES_URL = "http://www.ipu.ac.in/notices.php"
 NOTICES_BASE = "http://www.ipu.ac.in"
 HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+
+ALGOLIA_APP_ID = "RAD0PLRXFT"
+ALGOLIA_API_KEY = "6cc1a9d32007dd9440d259c3cd9b4bc3"
+ALGOLIA_INDEX_NAME = "notices"
 
 FETCH_RETRIES = 3
 FETCH_RETRY_DELAY = 5  # seconds between retries
@@ -133,6 +138,17 @@ def _save_new_notices(fs_client, notices: list) -> list:
     return new_notices
 
 
+def _index_notices(new_notices: list):
+    """Push new notices to Algolia index."""
+    client = SearchClientSync(ALGOLIA_APP_ID, ALGOLIA_API_KEY)
+    records = [
+        {**n, "objectID": _notice_id(n["url"])}
+        for n in new_notices
+    ]
+    client.save_objects(ALGOLIA_INDEX_NAME, records)
+    log.info(f"Indexed {len(records)} notice(s) in Algolia")
+
+
 def _top_notice_exists(fs_client, notice: dict) -> bool:
     """Quick check: does the most recent scraped notice already exist in Firestore?"""
     doc_id = _notice_id(notice["url"])
@@ -161,7 +177,7 @@ def _sync_archived_status(fs_client, current_urls: set):
 
 # ── FCM helpers ───────────────────────────────────────────────────────────────
 
-def _send_notification(title: str, body: str, url: str, tokens: list):
+def _send_notification(fs_client, title: str, body: str, url: str, tokens: list):
     if not tokens:
         log.info("No tokens to notify")
         return
@@ -185,13 +201,14 @@ def _send_notification(title: str, body: str, url: str, tokens: list):
                     stale_tokens.append(chunk[j])
 
     if stale_tokens:
-        _prune_tokens(stale_tokens)
+        _prune_tokens(fs_client, stale_tokens)
 
 
-def _prune_tokens(stale_tokens: list):
-    """Remove dead FCM tokens from the RTDB users node."""
-    users_ref = db.reference("users")
-    users_ref.update({token: None for token in stale_tokens})
+def _prune_tokens(fs_client, stale_tokens: list):
+    """Remove dead FCM tokens from the Firestore fcm_tokens collection."""
+    col = fs_client.collection("fcm_tokens")
+    for token in stale_tokens:
+        col.document(token).delete()
     log.info(f"Pruned {len(stale_tokens)} stale token(s)")
 
 
@@ -253,12 +270,16 @@ def scrape_ipu_notices(event: scheduler_fn.ScheduledEvent) -> None:
         _update_health(fs, len(notices), 0)
         return
 
-    # 5. Fetch FCM tokens from RTDB and notify
+    # 5. Index new notices in Algolia
+    try:
+        _index_notices(new_notices)
+    except Exception as e:
+        log.error(f"Algolia indexing error: {e}")
+
+    # 6. Fetch FCM tokens from Firestore and notify
     tokens = []
     try:
-        users_data = db.reference("users").get()
-        if users_data:
-            tokens = list(users_data.keys())
+        tokens = [doc.id for doc in fs.collection("fcm_tokens").stream()]
     except Exception as e:
         log.error(f"Could not fetch user tokens: {e}")
 
@@ -271,11 +292,11 @@ def scrape_ipu_notices(event: scheduler_fn.ScheduledEvent) -> None:
         else:
             notif_title = f"{count} new notices on IPU"
             notif_body = first["title"]
-        _send_notification(notif_title, notif_body, first["url"], tokens)
+        _send_notification(fs, notif_title, notif_body, first["url"], tokens)
     except Exception as e:
         log.error(f"Notification error: {e}")
 
-    # 6. Update health document
+    # 7. Update health document
     try:
         _update_health(fs, len(notices), len(new_notices))
     except Exception as e:
