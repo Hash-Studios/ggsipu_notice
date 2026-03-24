@@ -13,7 +13,7 @@ This is a beautiful minimal noticeboard app for Guru Gobind Singh Indraprastha U
 ![ggsipu_notice UI Mockup](demo/GGSIPU_Mockup.png)
 
 
-This app gets its source of notices from a Python and Flask server which I have deployed on Heroku. That server scrapes IP University's website every minute and updates the FireBase database and also sends a notification to the user if any new notice is found. The app provides the user with a fast and smooth experience filled with subtle animations and minimal design.
+This app gets its source of notices from a Python and Flask server that scrapes IP University's website every minute and updates the Firestore database. Push notifications are delivered via OneSignal when any new notice is found. The app provides a fast and smooth experience filled with subtle animations and minimal design.
 
 ## List of Contents
 
@@ -65,15 +65,26 @@ GGSIPU Noticeboard app is now available on Google Play, so you can support us by
 
 The following packages are needed for the development of this application.
 
-- `flutter_neumorphic: ^1.0.7` for neumorphic design
-- `firebase_database: 3.1.5` for notice database
-- `firebase_messaging: ^6.0.13` for push notifications
-- `url_launcher: ^5.4.5` for launching urls
-- `cupertino_icons: ^1.0.0` for cupertino icons
-- `share: ^0.6.5+2` for sharing links
-- `flutter_downloader: ^1.5.1` for downloading pdfs
-- `path_provider: ^1.6.18` for getting external storage
-- `permission_handler: ^5.0.1+1` fot external storage permission
+- `algolia: ^1.1.2` for notice search
+- `cloud_firestore: ^5.0.0` for notice database
+- `firebase_core: ^3.0.0` for Firebase initialization
+- `firebase_messaging: ^15.0.0` for background message handling
+- `onesignal_flutter: ^5.2.6` for push notifications
+- `url_launcher: ^6.3.0` for launching urls
+- `cupertino_icons: ^1.0.8` for cupertino icons
+- `share_plus: ^7.0.0` for sharing links
+- `flutter_downloader: ^1.11.4` for downloading PDFs
+- `flutter_slidable: ^3.1.1` for swipeable notice actions
+- `flutter_displaymode: ^0.6.0` for high refresh rate support
+- `path_provider: ^2.1.4` for getting external storage
+- `permission_handler: ^11.3.1` for external storage permission
+- `provider: ^6.1.2` for state management
+- `shared_preferences: ^2.3.2` for local preferences
+- `get_it: ^7.7.0` for dependency injection
+- `intl: ^0.19.0` for date formatting
+- `timeago: ^3.7.0` for relative timestamps
+- `oktoast: ^3.4.0` for toast messages
+- `logger: ^2.4.0` for logging
 
 More details about these can be found in the [`pubspec.yaml`](https://github.com/Hash-Studios/ggsipu_notice/tree/master/pubspec.yaml) file.
 
