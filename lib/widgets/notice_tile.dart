@@ -119,11 +119,6 @@ class _NoticeTileState extends State<NoticeTile> {
                           themeService.onBackground(context).withValues(alpha:0.1),
                       width: 1))),
           child: ListTile(
-            isThreeLine: (widget.document?.college ?? '')
-                .toUpperCase()
-                .trim()
-                .isNotEmpty,
-            // || ((document?.tags ?? []).isNotEmpty),
             enableFeedback: true,
             onLongPress: () {
               showToast(

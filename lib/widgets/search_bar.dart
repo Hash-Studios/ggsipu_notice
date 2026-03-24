@@ -12,7 +12,7 @@ class SearchBar extends StatelessWidget {
 
   final TextEditingController searchController;
   final FocusNode searchFocusNode;
-  final Null Function(dynamic value) onChanged;
+  final ValueChanged<String> onChanged;
 
   @override
   Widget build(BuildContext context) {

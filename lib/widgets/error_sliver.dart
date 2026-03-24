@@ -12,13 +12,13 @@ class ErrorSliver extends StatelessWidget {
         child: SizedBox(
           height: MediaQuery.of(context).size.height * 0.8,
           width: MediaQuery.of(context).size.width,
-          child: const Center(
+          child: Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
                   CupertinoIcons.multiply_circle,
-                  color: Colors.red,
+                  color: Theme.of(context).colorScheme.error,
                   size: 32,
                 ),
                 SizedBox(height: 12),

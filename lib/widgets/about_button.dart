@@ -24,6 +24,7 @@ class AboutButton extends StatelessWidget {
               barrierDismissible: true,
               builder: (BuildContext context) => const AboutDialog());
         },
+        tooltip: 'About',
         icon: const Icon(
           CupertinoIcons.info,
         ),

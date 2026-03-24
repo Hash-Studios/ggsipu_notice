@@ -9,7 +9,7 @@ class SearchButton extends StatelessWidget {
     required this.onPressed,
   });
 
-  final Null Function() onPressed;
+  final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +22,7 @@ class SearchButton extends StatelessWidget {
         highlightColor: Colors.transparent,
         hoverColor: Colors.transparent,
         splashColor: Colors.transparent,
+        tooltip: 'Search',
         onPressed: onPressed,
         icon: const Icon(
           CupertinoIcons.search,

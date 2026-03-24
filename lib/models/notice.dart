@@ -39,15 +39,16 @@ class Notice {
   });
 
   factory Notice.fromJson(Map<String, dynamic> json) {
-    final seed = (json['title'] as String? ?? json['url'] as String? ?? '').hashCode.abs();
-    json['color'] = Colors.primaries[seed % Colors.primaries.length]
+    final map = Map<String, dynamic>.from(json);
+    final seed = (map['title'] as String? ?? map['url'] as String? ?? '').hashCode.abs();
+    map['color'] = Colors.primaries[seed % Colors.primaries.length]
         .withValues(alpha: 0.3)
         .toHex();
     // Algolia hits don't have createdAt — fall back to parsing the date string
-    if (!json.containsKey('createdAt') || json['createdAt'] == null) {
-      json['createdAt'] = _dateStringToMillis(json['date'] as String? ?? '');
+    if (!map.containsKey('createdAt') || map['createdAt'] == null) {
+      map['createdAt'] = _dateStringToMillis(map['date'] as String? ?? '');
     }
-    return _$NoticeFromJson(json);
+    return _$NoticeFromJson(map);
   }
 
   static int _dateStringToMillis(String date) {

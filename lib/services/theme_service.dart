@@ -7,11 +7,11 @@ class ThemeService {
   Color accentD = Colors.indigo.shade400;
 
   Color accent(context) =>
-      MediaQuery.of(context).platformBrightness == Brightness.dark
+      Theme.of(context).brightness == Brightness.dark
           ? accentD
           : accentL;
   Color onAccent(context) =>
-      MediaQuery.of(context).platformBrightness == Brightness.dark
+      Theme.of(context).brightness == Brightness.dark
           ? accentD.computeLuminance() > 0.5
               ? Colors.black
               : Colors.white
@@ -20,7 +20,7 @@ class ThemeService {
               : Colors.white;
 
   Color onBackground(context) =>
-      MediaQuery.of(context).platformBrightness == Brightness.dark
+      Theme.of(context).brightness == Brightness.dark
           ? backgroundD.computeLuminance() > 0.5
               ? Colors.black
               : Colors.white
@@ -29,11 +29,11 @@ class ThemeService {
               : Colors.white;
 
   Color background(context) =>
-      MediaQuery.of(context).platformBrightness == Brightness.dark
+      Theme.of(context).brightness == Brightness.dark
           ? backgroundD
           : backgroundL;
   Color backgroundHighContrast(context) =>
-      MediaQuery.of(context).platformBrightness == Brightness.dark
+      Theme.of(context).brightness == Brightness.dark
           ? const Color(0xFF181818)
           : Colors.white;
 

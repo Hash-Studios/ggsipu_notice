@@ -33,6 +33,7 @@ class _HomePageState extends State<HomePage> {
   bool showSearch = false;
   bool animating = false;
   int _lastAutoLoadLength = -1;
+  List<Notice>? _cachedNotices;
 
   void _scrollListener() {
     if (controller.position.pixels <= 10 && animating) {
@@ -125,6 +126,8 @@ class _HomePageState extends State<HomePage> {
           query = value;
         });
         context.read<AlgoliaNotifier>().getNoticeSearch(value);
+      } else {
+        context.read<AlgoliaNotifier>().clearSnapshot();
       }
     }
 
@@ -161,7 +164,10 @@ class _HomePageState extends State<HomePage> {
               slivers: [
                 CupertinoSliverRefreshControl(
                   onRefresh: () {
-                    setState(() => _lastAutoLoadLength = -1);
+                    setState(() {
+                      _lastAutoLoadLength = -1;
+                      _cachedNotices = null;
+                    });
                     context.read<FirestoreNotifier>().initNoticeStream();
                     return Future<void>.delayed(const Duration(seconds: 1))
                       ..then<void>((_) {});
@@ -292,12 +298,15 @@ class _HomePageState extends State<HomePage> {
                               context.watch<FirestoreNotifier>().noticesStream,
                           builder: (BuildContext context,
                               AsyncSnapshot<List<Notice>> snapshot) {
-                            if (snapshot.hasError) {
+                            if (snapshot.hasData) {
+                              _cachedNotices = snapshot.data;
+                            }
+                            if (snapshot.hasError && _cachedNotices == null) {
                               logger.e(snapshot.error);
                               return const ErrorSliver();
                             }
-                            if (snapshot.hasData) {
-                              final data = snapshot.data!;
+                            if (_cachedNotices != null) {
+                              final data = _cachedNotices!;
                               if (data.length != _lastAutoLoadLength) {
                                 WidgetsBinding.instance
                                     .addPostFrameCallback((_) {

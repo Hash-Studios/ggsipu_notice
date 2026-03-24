@@ -23,7 +23,9 @@ late SharedPreferences prefs;
 // Must be top-level for Firebase Messaging background handler
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp();
+  }
 }
 
 // Must be top-level for FlutterDownloader isolate callback

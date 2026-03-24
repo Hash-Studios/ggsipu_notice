@@ -11,4 +11,9 @@ class AlgoliaNotifier with ChangeNotifier {
     await _algoliaService.getNoticeSearch(queryString);
     notifyListeners();
   }
+
+  void clearSnapshot() {
+    _algoliaService.clearSnapshot();
+    notifyListeners();
+  }
 }

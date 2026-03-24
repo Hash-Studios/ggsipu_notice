@@ -18,4 +18,8 @@ class AlgoliaService {
     snapshot = await query.getObjects();
     logger.d('Hits count: ${snapshot?.nbHits}');
   }
+
+  void clearSnapshot() {
+    snapshot = null;
+  }
 }
