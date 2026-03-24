@@ -32,6 +32,7 @@ class _HomePageState extends State<HomePage> {
   bool showFab = false;
   bool showSearch = false;
   bool animating = false;
+  int _lastAutoLoadLength = -1;
 
   void _scrollListener() {
     if (controller.position.pixels <= 10 && animating) {
@@ -160,6 +161,7 @@ class _HomePageState extends State<HomePage> {
               slivers: [
                 CupertinoSliverRefreshControl(
                   onRefresh: () {
+                    setState(() => _lastAutoLoadLength = -1);
                     context.read<FirestoreNotifier>().initNoticeStream();
                     return Future<void>.delayed(const Duration(seconds: 1))
                       ..then<void>((_) {});
@@ -212,6 +214,7 @@ class _HomePageState extends State<HomePage> {
                     color: themeService.background(context),
                     child: InkWell(
                       onTap: () {
+                        setState(() => _lastAutoLoadLength = -1);
                         context.read<FirestoreNotifier>().togglePriorityCheck();
                       },
                       child: Padding(
@@ -294,11 +297,28 @@ class _HomePageState extends State<HomePage> {
                               return const ErrorSliver();
                             }
                             if (snapshot.hasData) {
+                              final data = snapshot.data!;
+                              if (data.length != _lastAutoLoadLength) {
+                                WidgetsBinding.instance
+                                    .addPostFrameCallback((_) {
+                                  if (!mounted) return;
+                                  if (controller.hasClients &&
+                                      controller.position.maxScrollExtent ==
+                                          0) {
+                                    setState(() =>
+                                        _lastAutoLoadLength = data.length);
+                                    context
+                                        .read<FirestoreNotifier>()
+                                        .loadMore();
+                                  } else {
+                                    _lastAutoLoadLength = data.length;
+                                  }
+                                });
+                              }
                               return SliverList(
                                 delegate: SliverChildBuilderDelegate(
                                   (BuildContext context, int index) {
-                                    if (index ==
-                                        (snapshot.data?.length ?? 0) - 1) {
+                                    if (index == data.length) {
                                       return const SizedBox(
                                         height: 100,
                                         width: 100,
@@ -310,20 +330,18 @@ class _HomePageState extends State<HomePage> {
                                         ),
                                       );
                                     }
-                                    final bool download = snapshot
-                                            .data?[index].url
+                                    final bool download = data[index]
+                                            .url
                                             .toString()
                                             .toLowerCase()
-                                            .contains(".pdf") ??
-                                        false;
+                                            .contains(".pdf");
                                     return NoticeTile(
-                                      key: ValueKey(
-                                          snapshot.data?[index].title),
+                                      key: ValueKey(data[index].title),
                                       download: download,
-                                      document: snapshot.data?[index],
+                                      document: data[index],
                                     );
                                   },
-                                  childCount: snapshot.data?.length ?? 0,
+                                  childCount: data.length + 1,
                                 ),
                               );
                             }
