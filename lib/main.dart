@@ -26,6 +26,12 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
 }
 
+// Must be top-level for FlutterDownloader isolate callback
+@pragma('vm:entry-point')
+void _downloadCallback(String id, int status, int progress) {
+  // System notification handles download progress display
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await setupLocator();
@@ -34,6 +40,7 @@ void main() async {
   await setRefreshRate();
   prefs = await SharedPreferences.getInstance();
   await FlutterDownloader.initialize();
+  FlutterDownloader.registerCallback(_downloadCallback);
   oneSignalSetup();
   await setupFirebaseMessaging();
   runApp(OKToast(
@@ -67,9 +74,16 @@ Future<void> setupFirebaseMessaging() async {
     _openNoticeUrl(message.data['url']);
   });
 
-  // Notification received while app is in foreground — open directly
+  // Notification received in foreground — show a toast; don't interrupt the user
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    _openNoticeUrl(message.data['url']);
+    final title = message.notification?.title
+        ?? message.data['title'] as String?
+        ?? 'New notice';
+    showToast(
+      title,
+      duration: const Duration(seconds: 4),
+      position: ToastPosition.top,
+    );
   });
 
   // Register FCM token with Firestore so the backend can send notifications
@@ -100,9 +114,13 @@ void _openNoticeUrl(String? url) async {
 }
 
 Future<void> setRefreshRate() async {
-  await FlutterDisplayMode.setHighRefreshRate().then((value) =>
-      FlutterDisplayMode.active.then((mode) => logger.i(
-          "Refresh rate set to - ${mode.width}x${mode.height} @ ${mode.refreshRate}")));
+  try {
+    await FlutterDisplayMode.setHighRefreshRate();
+    final mode = await FlutterDisplayMode.active;
+    logger.i("Refresh rate: ${mode.width}x${mode.height} @ ${mode.refreshRate}Hz");
+  } catch (e) {
+    logger.w("Could not set high refresh rate: $e");
+  }
 }
 
 class MyApp extends StatelessWidget {

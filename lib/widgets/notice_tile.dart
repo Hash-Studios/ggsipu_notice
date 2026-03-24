@@ -1,7 +1,5 @@
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:math';
-import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -33,48 +31,6 @@ class NoticeTile extends StatefulWidget {
 }
 
 class _NoticeTileState extends State<NoticeTile> {
-  final ReceivePort _port = ReceivePort();
-  bool downloading = false;
-  bool downloaded = false;
-  int? progress;
-
-  @override
-  void initState() {
-    super.initState();
-    IsolateNameServer.registerPortWithName(
-        _port.sendPort, 'downloader_send_port');
-    _port.listen((dynamic data) {
-      int status = data[1];
-      if (status == DownloadTaskStatus.complete.index) {
-        setState(() {
-          downloaded = true;
-        });
-      }
-      setState(() {
-        if (status == DownloadTaskStatus.running.index) {
-          downloading = true;
-          progress = data[2];
-        } else {
-          downloading = false;
-          progress = 0;
-        }
-      });
-    });
-    FlutterDownloader.registerCallback(callback);
-  }
-
-  @override
-  void dispose() {
-    IsolateNameServer.removePortNameMapping('downloader_send_port');
-    super.dispose();
-  }
-
-  static void callback(String id, int status, int progress) {
-    final SendPort? send =
-        IsolateNameServer.lookupPortByName('downloader_send_port');
-    send?.send([id, status, progress]);
-  }
-
   _launchURL(String url) async {
     final uri = Uri.parse(url);
     final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);

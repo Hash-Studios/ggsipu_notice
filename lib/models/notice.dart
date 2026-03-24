@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -41,7 +39,8 @@ class Notice {
   });
 
   factory Notice.fromJson(Map<String, dynamic> json) {
-    json['color'] = Colors.primaries[Random().nextInt(Colors.primaries.length)]
+    final seed = (json['title'] as String? ?? json['url'] as String? ?? '').hashCode.abs();
+    json['color'] = Colors.primaries[seed % Colors.primaries.length]
         .withValues(alpha: 0.3)
         .toHex();
     // Algolia hits don't have createdAt — fall back to parsing the date string
