@@ -98,6 +98,11 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final themeService = locator<ThemeService>();
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = MediaQuery.of(context).size.shortestSide >= 600;
+    final horizontalInset = isTablet
+        ? ((screenWidth - 680.0).clamp(0.0, double.infinity) / 2)
+        : 0.0;
 
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(
@@ -194,10 +199,13 @@ class _HomePageState extends State<HomePage> {
                   ),
                   backgroundColor: themeService.background(context),
                 ),
-                SearchBar(
-                  searchController: searchController,
-                  searchFocusNode: searchFocusNode,
-                  onChanged: onChanged,
+                SliverPadding(
+                  padding: EdgeInsets.symmetric(horizontal: horizontalInset),
+                  sliver: SearchBar(
+                    searchController: searchController,
+                    searchFocusNode: searchFocusNode,
+                    onChanged: onChanged,
+                  ),
                 ),
                  SliverToBoxAdapter(
                   child: Material(
@@ -207,7 +215,8 @@ class _HomePageState extends State<HomePage> {
                         context.read<FirestoreNotifier>().togglePriorityCheck();
                       },
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+                        padding: EdgeInsets.fromLTRB(
+                            20 + horizontalInset, 8, 20 + horizontalInset, 8),
                         child: Row(
                           children: [
                             Text(
@@ -236,88 +245,92 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-                (searchController.text.trim().isNotEmpty)
-                    ? () {
-                        final snapshot =
-                            context.watch<AlgoliaNotifier>().snapshot;
-                        if (snapshot?.empty ?? false) {
-                          // logger.e(snapshot.error);
-                          return const ErrorSliver();
-                        }
-                        if (snapshot?.hits.isNotEmpty ?? false) {
-                          return SliverList(
-                            delegate: SliverChildBuilderDelegate(
-                              (BuildContext context, int index) {
-                                if (index == (snapshot?.hits.length ?? 0)) {
-                                  return const SizedBox(
-                                    height: 100,
-                                    width: 100,
-                                  );
-                                }
-                                final bool? download = snapshot
-                                    ?.hits[index].data['url']
-                                    .toString()
-                                    .toLowerCase()
-                                    .contains(".pdf");
-                                final Map? map = snapshot?.hits[index].data;
-                                return NoticeTile(
-                                  key: ValueKey(map?['title']),
-                                  download: download ?? false,
-                                  document: Notice.fromJson(
-                                      map as Map<String, dynamic>),
-                                );
-                              },
-                              childCount: (snapshot?.hits.length ?? 0) + 1,
-                            ),
-                          );
-                        }
-                        return const LoadingSliver();
-                      }()
-                    : StreamBuilder<List<Notice>>(
-                        stream:
-                            context.watch<FirestoreNotifier>().noticesStream,
-                        builder: (BuildContext context,
-                            AsyncSnapshot<List<Notice>> snapshot) {
-                          if (snapshot.hasError) {
-                            logger.e(snapshot.error);
+                SliverPadding(
+                  padding: EdgeInsets.symmetric(horizontal: horizontalInset),
+                  sliver: (searchController.text.trim().isNotEmpty)
+                      ? () {
+                          final snapshot =
+                              context.watch<AlgoliaNotifier>().snapshot;
+                          if (snapshot?.empty ?? false) {
+                            // logger.e(snapshot.error);
                             return const ErrorSliver();
                           }
-                          if (snapshot.hasData) {
+                          if (snapshot?.hits.isNotEmpty ?? false) {
                             return SliverList(
                               delegate: SliverChildBuilderDelegate(
                                 (BuildContext context, int index) {
-                                  if (index ==
-                                      (snapshot.data?.length ?? 0) - 1) {
+                                  if (index == (snapshot?.hits.length ?? 0)) {
                                     return const SizedBox(
                                       height: 100,
                                       width: 100,
-                                      child: Center(
-                                        child: CupertinoActivityIndicator(
-                                          animating: true,
-                                          radius: 14,
-                                        ),
-                                      ),
                                     );
                                   }
-                                  final bool download = snapshot
-                                          .data?[index].url
-                                          .toString()
-                                          .toLowerCase()
-                                          .contains(".pdf") ??
-                                      false;
+                                  final bool? download = snapshot
+                                      ?.hits[index].data['url']
+                                      .toString()
+                                      .toLowerCase()
+                                      .contains(".pdf");
+                                  final Map? map = snapshot?.hits[index].data;
                                   return NoticeTile(
-                                    key: ValueKey(snapshot.data?[index].title),
-                                    download: download,
-                                    document: snapshot.data?[index],
+                                    key: ValueKey(map?['title']),
+                                    download: download ?? false,
+                                    document: Notice.fromJson(
+                                        map as Map<String, dynamic>),
                                   );
                                 },
-                                childCount: snapshot.data?.length ?? 0,
+                                childCount: (snapshot?.hits.length ?? 0) + 1,
                               ),
                             );
                           }
                           return const LoadingSliver();
-                        },
-                      )
+                        }()
+                      : StreamBuilder<List<Notice>>(
+                          stream:
+                              context.watch<FirestoreNotifier>().noticesStream,
+                          builder: (BuildContext context,
+                              AsyncSnapshot<List<Notice>> snapshot) {
+                            if (snapshot.hasError) {
+                              logger.e(snapshot.error);
+                              return const ErrorSliver();
+                            }
+                            if (snapshot.hasData) {
+                              return SliverList(
+                                delegate: SliverChildBuilderDelegate(
+                                  (BuildContext context, int index) {
+                                    if (index ==
+                                        (snapshot.data?.length ?? 0) - 1) {
+                                      return const SizedBox(
+                                        height: 100,
+                                        width: 100,
+                                        child: Center(
+                                          child: CupertinoActivityIndicator(
+                                            animating: true,
+                                            radius: 14,
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                    final bool download = snapshot
+                                            .data?[index].url
+                                            .toString()
+                                            .toLowerCase()
+                                            .contains(".pdf") ??
+                                        false;
+                                    return NoticeTile(
+                                      key: ValueKey(
+                                          snapshot.data?[index].title),
+                                      download: download,
+                                      document: snapshot.data?[index],
+                                    );
+                                  },
+                                  childCount: snapshot.data?.length ?? 0,
+                                ),
+                              );
+                            }
+                            return const LoadingSliver();
+                          },
+                        ),
+                )
               ],
             ),
             GoToTopFAB(
