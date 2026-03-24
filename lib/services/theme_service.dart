@@ -7,11 +7,11 @@ class ThemeService {
   Color accentD = Colors.indigo.shade400;
 
   Color accent(context) =>
-      MediaQuery.of(context).platformBrightness == Brightness.dark
+      Theme.of(context).brightness == Brightness.dark
           ? accentD
           : accentL;
   Color onAccent(context) =>
-      MediaQuery.of(context).platformBrightness == Brightness.dark
+      Theme.of(context).brightness == Brightness.dark
           ? accentD.computeLuminance() > 0.5
               ? Colors.black
               : Colors.white
@@ -20,7 +20,7 @@ class ThemeService {
               : Colors.white;
 
   Color onBackground(context) =>
-      MediaQuery.of(context).platformBrightness == Brightness.dark
+      Theme.of(context).brightness == Brightness.dark
           ? backgroundD.computeLuminance() > 0.5
               ? Colors.black
               : Colors.white
@@ -29,11 +29,11 @@ class ThemeService {
               : Colors.white;
 
   Color background(context) =>
-      MediaQuery.of(context).platformBrightness == Brightness.dark
+      Theme.of(context).brightness == Brightness.dark
           ? backgroundD
           : backgroundL;
   Color backgroundHighContrast(context) =>
-      MediaQuery.of(context).platformBrightness == Brightness.dark
+      Theme.of(context).brightness == Brightness.dark
           ? const Color(0xFF181818)
           : Colors.white;
 
@@ -47,16 +47,12 @@ class ThemeService {
           ),
     );
     TextTheme txtTheme = lightTheme.textTheme;
-    Color txtColor = txtTheme.bodyText1?.color ?? (Colors.black);
+    Color txtColor = txtTheme.bodyLarge?.color ?? Colors.black;
     ColorScheme colorScheme = ColorScheme(
         brightness: Brightness.light,
         primary: accentL,
-        primaryVariant: accentL,
         secondary: accentL,
-        secondaryVariant: accentL,
-        background: backgroundL,
         surface: backgroundL,
-        onBackground: txtColor,
         onSurface: txtColor,
         onError: Colors.white,
         onPrimary:
@@ -68,9 +64,8 @@ class ThemeService {
     final ThemeData t =
         ThemeData.from(textTheme: txtTheme, colorScheme: colorScheme).copyWith(
       textSelectionTheme: TextSelectionThemeData(cursorColor: accentL),
-      highlightColor: accentL.withOpacity(0.2),
+      highlightColor: accentL.withValues(alpha: 0.2),
       scaffoldBackgroundColor: backgroundL,
-      toggleableActiveColor: accentL,
     );
     return t;
   }
@@ -85,16 +80,12 @@ class ThemeService {
           ),
     );
     TextTheme txtTheme = darkTheme.textTheme;
-    Color txtColor = txtTheme.bodyText1?.color ?? (Colors.white);
+    Color txtColor = txtTheme.bodyLarge?.color ?? Colors.white;
     ColorScheme colorScheme = ColorScheme(
         brightness: Brightness.dark,
         primary: accentD,
-        primaryVariant: accentD,
         secondary: accentD,
-        secondaryVariant: accentD,
-        background: backgroundD,
         surface: backgroundD,
-        onBackground: txtColor,
         onSurface: txtColor,
         onError: Colors.white,
         onPrimary:
@@ -106,9 +97,8 @@ class ThemeService {
     final ThemeData t =
         ThemeData.from(textTheme: txtTheme, colorScheme: colorScheme).copyWith(
       textSelectionTheme: TextSelectionThemeData(cursorColor: accentD),
-      highlightColor: accentD.withOpacity(0.2),
+      highlightColor: accentD.withValues(alpha: 0.2),
       scaffoldBackgroundColor: backgroundD,
-      toggleableActiveColor: accentD,
     );
     return t;
   }

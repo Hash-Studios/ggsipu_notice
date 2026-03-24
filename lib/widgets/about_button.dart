@@ -5,13 +5,11 @@ import 'package:ip_notices/services/theme_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AboutButton extends StatelessWidget {
-  const AboutButton({
-    Key? key,
-  }) : super(key: key);
+  const AboutButton({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final _themeService = locator<ThemeService>();
+    final themeService = locator<ThemeService>();
     return Card(
       elevation: 0,
       color: Colors.transparent,
@@ -26,13 +24,11 @@ class AboutButton extends StatelessWidget {
               barrierDismissible: true,
               builder: (BuildContext context) => const AboutDialog());
         },
+        tooltip: 'About',
         icon: const Icon(
-          // NeumorphicTheme.isUsingDark(context)
-          // ? CupertinoIcons.info
-          // :
           CupertinoIcons.info,
         ),
-        color: _themeService.onBackground(context),
+        color: themeService.onBackground(context),
         iconSize: 20,
       ),
     );
@@ -40,38 +36,37 @@ class AboutButton extends StatelessWidget {
 }
 
 class AboutDialog extends StatelessWidget {
-  const AboutDialog({
-    Key? key,
-  }) : super(key: key);
+  const AboutDialog({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final _themeService = locator<ThemeService>();
+    final themeService = locator<ThemeService>();
     return CupertinoAlertDialog(
-      title: const Text("GGSIPU Notices v1.3.1-beta+17"),
+      title: const Text("GGSIPU Notices"),
       content: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
           const Padding(
-            padding: EdgeInsets.only(top: 20),
-            child: Text("Developed and Maintained by"),
+            padding: EdgeInsets.only(top: 12),
+            child: Text("Made by"),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(10, 20, 10, 20),
+            padding: const EdgeInsets.fromLTRB(10, 16, 10, 20),
             child: Material(
               elevation: 0,
-              color: _themeService.onBackground(context).withOpacity(0.1),
+              color: themeService.onBackground(context).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
               child: ListTile(
+                contentPadding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
                 leading: Container(
                     padding: const EdgeInsets.only(right: 12.0),
                     decoration: BoxDecoration(
                       border: Border(
                         right: BorderSide(
                           width: 1.0,
-                          color: _themeService
+                          color: themeService
                               .onBackground(context)
-                              .withOpacity(0.24),
+                              .withValues(alpha: 0.24),
                         ),
                       ),
                     ),
@@ -81,21 +76,28 @@ class AboutDialog extends StatelessWidget {
                 title: Text(
                   "Abhay Maurya",
                   style: TextStyle(
-                      color:
-                          _themeService.onBackground(context).withOpacity(0.9),
+                      color: themeService
+                          .onBackground(context)
+                          .withValues(alpha: 0.9),
                       fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text(
-                  "ECE, USICT",
+                  "ex-USICTian",
                   style: TextStyle(
-                      color:
-                          _themeService.onBackground(context).withOpacity(0.9)),
+                      color: themeService
+                          .onBackground(context)
+                          .withValues(alpha: 0.9)),
                 ),
               ),
             ),
           ),
           const Text(
-            "This is an unofficial app.\nPlease give the repository a star if you like this app. 👍",
+            "Unofficial app. Not affiliated with GGSIPU.",
+            style: TextStyle(fontSize: 12),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            "If you find it useful, star the repo on GitHub.",
             style: TextStyle(fontSize: 12),
           ),
         ],
@@ -105,21 +107,25 @@ class AboutDialog extends StatelessWidget {
           child: const Text("Github"),
           onPressed: () {
             Navigator.of(context).pop();
-            String link = "https://www.github.com/LiquidatorCoder";
-            _launchURL(link);
+            _launchURL("https://www.github.com/LiquidatorCoder");
           },
         ),
         CupertinoDialogAction(
           child: const Text("LinkedIn"),
           onPressed: () {
             Navigator.of(context).pop();
-            String link = "https://www.linkedin.com/in/liquidatorcoder/";
-            _launchURL(link);
+            _launchURL("https://www.linkedin.com/in/liquidatorcoder/");
           },
         ),
         CupertinoDialogAction(
-          isDestructiveAction: true,
-          child: const Text("Back"),
+          child: const Text("X (Twitter)"),
+          onPressed: () {
+            Navigator.of(context).pop();
+            _launchURL("https://www.twitter.com/liquidatorAB_/");
+          },
+        ),
+        CupertinoDialogAction(
+          child: const Text("Close"),
           onPressed: () {
             Navigator.of(context).pop();
           },
@@ -128,9 +134,10 @@ class AboutDialog extends StatelessWidget {
     );
   }
 
-  _launchURL(String url) async {
-    if (await canLaunch(url)) {
-      await launch(url);
+  void _launchURL(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
     } else {
       throw 'Could not launch $url';
     }

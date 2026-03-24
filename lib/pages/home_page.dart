@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide SearchBar;
 import 'package:flutter/services.dart';
 import 'package:ip_notices/models/notice.dart';
 import 'package:ip_notices/notifiers/algolia_notifier.dart';
@@ -17,10 +17,10 @@ import 'package:ip_notices/widgets/search_button.dart';
 import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
-  _HomePageState createState() => _HomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
@@ -32,6 +32,8 @@ class _HomePageState extends State<HomePage> {
   bool showFab = false;
   bool showSearch = false;
   bool animating = false;
+  int _lastAutoLoadLength = -1;
+  List<Notice>? _cachedNotices;
 
   void _scrollListener() {
     if (controller.position.pixels <= 10 && animating) {
@@ -81,8 +83,9 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     searchFocusNode = FocusNode();
-    Future.delayed(const Duration())
-        .then((value) => context.read<FirestoreNotifier>().initNoticeStream());
+    Future.delayed(const Duration()).then((value) {
+      if (mounted) context.read<FirestoreNotifier>().initNoticeStream();
+    });
     controller.addListener(_scrollListener);
   }
 
@@ -96,7 +99,12 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final _themeService = locator<ThemeService>();
+    final themeService = locator<ThemeService>();
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = MediaQuery.of(context).size.shortestSide >= 600;
+    final horizontalInset = isTablet
+        ? ((screenWidth - 680.0).clamp(0.0, double.infinity) / 2)
+        : 0.0;
 
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(
@@ -118,6 +126,8 @@ class _HomePageState extends State<HomePage> {
           query = value;
         });
         context.read<AlgoliaNotifier>().getNoticeSearch(value);
+      } else {
+        context.read<AlgoliaNotifier>().clearSnapshot();
       }
     }
 
@@ -144,7 +154,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     return CupertinoPageScaffold(
-      backgroundColor: _themeService.background(context),
+      backgroundColor: themeService.background(context),
       child: SafeArea(
         child: Stack(
           children: [
@@ -154,6 +164,10 @@ class _HomePageState extends State<HomePage> {
               slivers: [
                 CupertinoSliverRefreshControl(
                   onRefresh: () {
+                    setState(() {
+                      _lastAutoLoadLength = -1;
+                      _cachedNotices = null;
+                    });
                     context.read<FirestoreNotifier>().initNoticeStream();
                     return Future<void>.delayed(const Duration(seconds: 1))
                       ..then<void>((_) {});
@@ -166,9 +180,9 @@ class _HomePageState extends State<HomePage> {
                   leading: const AboutButton(),
                   border: Border(
                       bottom: BorderSide(
-                          color: _themeService
+                          color: themeService
                               .onBackground(context)
-                              .withOpacity(0.1),
+                              .withValues(alpha: 0.1),
                           width: 1)),
                   automaticallyImplyLeading: false,
                   trailing: AnimatedSwitcher(
@@ -188,98 +202,162 @@ class _HomePageState extends State<HomePage> {
                   largeTitle: Text(
                     'Notices',
                     style: TextStyle(
-                      color: _themeService.onBackground(context),
+                      color: themeService.onBackground(context),
                     ),
                   ),
-                  backgroundColor: _themeService.background(context),
+                  backgroundColor: themeService.background(context),
                 ),
-                SearchBar(
-                  searchController: searchController,
-                  searchFocusNode: searchFocusNode,
-                  onChanged: onChanged,
+                SliverPadding(
+                  padding: EdgeInsets.symmetric(horizontal: horizontalInset),
+                  sliver: SearchBar(
+                    searchController: searchController,
+                    searchFocusNode: searchFocusNode,
+                    onChanged: onChanged,
+                  ),
                 ),
-                (searchController.text.trim().isNotEmpty)
-                    ? () {
-                        final snapshot =
-                            context.watch<AlgoliaNotifier>().snapshot;
-                        if (snapshot?.empty ?? false) {
-                          // logger.e(snapshot.error);
-                          return const ErrorSliver();
-                        }
-                        if (snapshot?.hits.isNotEmpty ?? false) {
-                          return SliverList(
-                            delegate: SliverChildBuilderDelegate(
-                              (BuildContext context, int index) {
-                                if (index == (snapshot?.hits.length ?? 0)) {
-                                  return const SizedBox(
-                                    height: 100,
-                                    width: 100,
-                                  );
-                                }
-                                final bool? download = snapshot
-                                    ?.hits[index].data['url']
-                                    .toString()
-                                    .toLowerCase()
-                                    .contains(".pdf");
-                                final Map? map = snapshot?.hits[index].data;
-                                return NoticeTile(
-                                  key: ValueKey(map?['title']),
-                                  download: download ?? false,
-                                  document: Notice.fromJson(
-                                      map as Map<String, dynamic>),
-                                );
-                              },
-                              childCount: (snapshot?.hits.length ?? 0) + 1,
+                 SliverToBoxAdapter(
+                  child: Material(
+                    color: themeService.background(context),
+                    child: InkWell(
+                      onTap: () {
+                        setState(() => _lastAutoLoadLength = -1);
+                        context.read<FirestoreNotifier>().togglePriorityCheck();
+                      },
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(
+                            20 + horizontalInset, 8, 20 + horizontalInset, 8),
+                        child: Row(
+                          children: [
+                            Text(
+                              context.watch<FirestoreNotifier>().priorityCheck
+                                  ? "Priority"
+                                  : "Latest",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                color: themeService.onBackground(context),
+                              ),
                             ),
-                          );
-                        }
-                        return const LoadingSliver();
-                      }()
-                    : StreamBuilder<List<Notice>>(
-                        stream:
-                            context.watch<FirestoreNotifier>().noticesStream,
-                        builder: (BuildContext context,
-                            AsyncSnapshot<List<Notice>> snapshot) {
-                          if (snapshot.hasError) {
-                            logger.e(snapshot.error);
+                            const Spacer(),
+                            Icon(
+                              context.watch<FirestoreNotifier>().priorityCheck
+                                  ? CupertinoIcons.star
+                                  : CupertinoIcons.time,
+                              color: themeService
+                                  .onBackground(context)
+                                  .withValues(alpha: 0.8),
+                              size: 18,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                SliverPadding(
+                  padding: EdgeInsets.symmetric(horizontal: horizontalInset),
+                  sliver: (searchController.text.trim().isNotEmpty)
+                      ? () {
+                          final snapshot =
+                              context.watch<AlgoliaNotifier>().snapshot;
+                          if (snapshot?.empty ?? false) {
+                            // logger.e(snapshot.error);
                             return const ErrorSliver();
                           }
-                          if (snapshot.hasData) {
+                          if (snapshot?.hits.isNotEmpty ?? false) {
                             return SliverList(
                               delegate: SliverChildBuilderDelegate(
                                 (BuildContext context, int index) {
-                                  if (index ==
-                                      (snapshot.data?.length ?? 0) - 1) {
+                                  if (index == (snapshot?.hits.length ?? 0)) {
                                     return const SizedBox(
                                       height: 100,
                                       width: 100,
-                                      child: Center(
-                                        child: CupertinoActivityIndicator(
-                                          animating: true,
-                                          radius: 14,
-                                        ),
-                                      ),
                                     );
                                   }
-                                  final bool download = snapshot
-                                          .data?[index].url
-                                          .toString()
-                                          .toLowerCase()
-                                          .contains(".pdf") ??
-                                      false;
+                                  final bool? download = snapshot
+                                      ?.hits[index].data['url']
+                                      .toString()
+                                      .toLowerCase()
+                                      .contains(".pdf");
+                                  final Map? map = snapshot?.hits[index].data;
                                   return NoticeTile(
-                                    key: ValueKey(snapshot.data?[index].title),
-                                    download: download,
-                                    document: snapshot.data?[index],
+                                    key: ValueKey(map?['title']),
+                                    download: download ?? false,
+                                    document: Notice.fromJson(
+                                        map as Map<String, dynamic>),
                                   );
                                 },
-                                childCount: snapshot.data?.length ?? 0,
+                                childCount: (snapshot?.hits.length ?? 0) + 1,
                               ),
                             );
                           }
                           return const LoadingSliver();
-                        },
-                      )
+                        }()
+                      : StreamBuilder<List<Notice>>(
+                          stream:
+                              context.watch<FirestoreNotifier>().noticesStream,
+                          builder: (BuildContext context,
+                              AsyncSnapshot<List<Notice>> snapshot) {
+                            if (snapshot.hasData) {
+                              _cachedNotices = snapshot.data;
+                            }
+                            if (snapshot.hasError && _cachedNotices == null) {
+                              logger.e(snapshot.error);
+                              return const ErrorSliver();
+                            }
+                            if (_cachedNotices != null) {
+                              final data = _cachedNotices!;
+                              if (data.length != _lastAutoLoadLength) {
+                                WidgetsBinding.instance
+                                    .addPostFrameCallback((_) {
+                                  if (!mounted) return;
+                                  if (controller.hasClients &&
+                                      controller.position.maxScrollExtent ==
+                                          0) {
+                                    setState(() =>
+                                        _lastAutoLoadLength = data.length);
+                                    context
+                                        .read<FirestoreNotifier>()
+                                        .loadMore();
+                                  } else {
+                                    _lastAutoLoadLength = data.length;
+                                  }
+                                });
+                              }
+                              return SliverList(
+                                delegate: SliverChildBuilderDelegate(
+                                  (BuildContext context, int index) {
+                                    if (index == data.length) {
+                                      return const SizedBox(
+                                        height: 100,
+                                        width: 100,
+                                        child: Center(
+                                          child: CupertinoActivityIndicator(
+                                            animating: true,
+                                            radius: 14,
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                    final bool download = data[index]
+                                            .url
+                                            .toString()
+                                            .toLowerCase()
+                                            .contains(".pdf");
+                                    return NoticeTile(
+                                      key: ValueKey(data[index].title),
+                                      download: download,
+                                      document: data[index],
+                                    );
+                                  },
+                                  childCount: data.length + 1,
+                                ),
+                              );
+                            }
+                            return const LoadingSliver();
+                          },
+                        ),
+                )
               ],
             ),
             GoToTopFAB(

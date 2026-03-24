@@ -55,3 +55,4 @@ keys.py
 server/venv
 key.jks
 lib/keys.dart
+lib/firebase_options.dart

@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -25,6 +23,8 @@ class Notice {
   String? college;
   @JsonKey()
   List<String?>? tags;
+  @JsonKey(defaultValue: false)
+  bool isArchived;
 
   Notice({
     required this.title,
@@ -35,13 +35,33 @@ class Notice {
     required this.color,
     this.college,
     this.tags,
+    this.isArchived = false,
   });
 
   factory Notice.fromJson(Map<String, dynamic> json) {
-    json['color'] = Colors.primaries[Random().nextInt(Colors.primaries.length)]
-        .withOpacity(0.3)
+    final map = Map<String, dynamic>.from(json);
+    final seed = (map['title'] as String? ?? map['url'] as String? ?? '').hashCode.abs();
+    map['color'] = Colors.primaries[seed % Colors.primaries.length]
+        .withValues(alpha: 0.3)
         .toHex();
-    return _$NoticeFromJson(json);
+    // Algolia hits don't have createdAt — fall back to parsing the date string
+    if (!map.containsKey('createdAt') || map['createdAt'] == null) {
+      map['createdAt'] = _dateStringToMillis(map['date'] as String? ?? '');
+    }
+    return _$NoticeFromJson(map);
+  }
+
+  static int _dateStringToMillis(String date) {
+    try {
+      final parts = date.split('-');
+      return DateTime(
+        int.parse(parts[2]),
+        int.parse(parts[1]),
+        int.parse(parts[0]),
+      ).millisecondsSinceEpoch;
+    } catch (_) {
+      return DateTime.now().millisecondsSinceEpoch;
+    }
   }
   Map<String, dynamic> toJson() => _$NoticeToJson(this);
 }
@@ -75,8 +95,8 @@ extension HexColor on Color {
 
   /// Prefixes a hash sign if [leadingHashSign] is set to `true` (default is `true`).
   String toHex({bool leadingHashSign = true}) => '${leadingHashSign ? '#' : ''}'
-      '${alpha.toRadixString(16).padLeft(2, '0')}'
-      '${red.toRadixString(16).padLeft(2, '0')}'
-      '${green.toRadixString(16).padLeft(2, '0')}'
-      '${blue.toRadixString(16).padLeft(2, '0')}';
+      '${(a * 255.0).round().clamp(0, 255).toRadixString(16).padLeft(2, '0')}'
+      '${(r * 255.0).round().clamp(0, 255).toRadixString(16).padLeft(2, '0')}'
+      '${(g * 255.0).round().clamp(0, 255).toRadixString(16).padLeft(2, '0')}'
+      '${(b * 255.0).round().clamp(0, 255).toRadixString(16).padLeft(2, '0')}';
 }
