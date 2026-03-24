@@ -13,9 +13,25 @@ class ErrorSliver extends StatelessWidget {
           height: MediaQuery.of(context).size.height * 0.8,
           width: MediaQuery.of(context).size.width,
           child: const Center(
-            child: Icon(
-              CupertinoIcons.multiply_circle,
-              color: Colors.red,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  CupertinoIcons.multiply_circle,
+                  color: Colors.red,
+                  size: 32,
+                ),
+                SizedBox(height: 12),
+                Text(
+                  "Couldn't load notices",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  "Pull down to try again",
+                  style: TextStyle(fontSize: 13, color: CupertinoColors.secondaryLabel),
+                ),
+              ],
             ),
           ),
         ),

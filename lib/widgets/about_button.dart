@@ -41,13 +41,13 @@ class AboutDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeService = locator<ThemeService>();
     return CupertinoAlertDialog(
-      title: const Text("GGSIPU Notices v1.3.1+19"),
+      title: const Text("GGSIPU Notices"),
       content: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
           const Padding(
             padding: EdgeInsets.only(top: 12),
-            child: Text("Developed and Maintained by"),
+            child: Text("Made by"),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(10, 16, 10, 20),
@@ -91,7 +91,12 @@ class AboutDialog extends StatelessWidget {
             ),
           ),
           const Text(
-            "This is an unofficial app.\nPlease give the repository a star if you like this app. 👍",
+            "Unofficial app. Not affiliated with GGSIPU.",
+            style: TextStyle(fontSize: 12),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            "If you find it useful, star the repo on GitHub.",
             style: TextStyle(fontSize: 12),
           ),
         ],
@@ -111,16 +116,15 @@ class AboutDialog extends StatelessWidget {
             _launchURL("https://www.linkedin.com/in/liquidatorcoder/");
           },
         ),
-         CupertinoDialogAction(
-          child: const Text("Twitter"),
+        CupertinoDialogAction(
+          child: const Text("X (Twitter)"),
           onPressed: () {
             Navigator.of(context).pop();
             _launchURL("https://www.twitter.com/liquidatorAB_/");
           },
         ),
         CupertinoDialogAction(
-          isDestructiveAction: true,
-          child: const Text("Back"),
+          child: const Text("Close"),
           onPressed: () {
             Navigator.of(context).pop();
           },

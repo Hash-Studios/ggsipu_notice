@@ -79,7 +79,7 @@ class _NoticeTileState extends State<NoticeTile> {
     final uri = Uri.parse(url);
     final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!launched) {
-      showToast('Could not open link.');
+      showToast("Couldn't open this link. Try again.");
     }
   }
 
@@ -123,7 +123,7 @@ class _NoticeTileState extends State<NoticeTile> {
                   logger.d("Task Id - $taskId | Path - $localPath");
                 } catch (e) {
                   logger.e('Download failed: $e');
-                  showToast('Download failed. Try opening instead.');
+                  showToast('Download failed. Tap to open in browser instead.');
                 }
               } else {
                 _launchURL(widget.document?.url ?? '');
@@ -171,7 +171,7 @@ class _NoticeTileState extends State<NoticeTile> {
             enableFeedback: true,
             onLongPress: () {
               showToast(
-                "Swipe to download & share.",
+                "Swipe right to download, left to share.",
                 duration: const Duration(seconds: 1),
                 position: ToastPosition.bottom,
                 textStyle: TextStyle(
