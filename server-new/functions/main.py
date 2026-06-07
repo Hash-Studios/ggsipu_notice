@@ -4,6 +4,7 @@ import time
 import firebase_admin
 from firebase_admin import firestore, messaging
 from firebase_functions import scheduler_fn
+from firebase_functions.options import MemoryOption
 from algoliasearch.search.client import SearchClientSync
 from bs4 import BeautifulSoup
 from urllib import parse
@@ -22,8 +23,8 @@ ALGOLIA_APP_ID = "RAD0PLRXFT"
 ALGOLIA_API_KEY = "6cc1a9d32007dd9440d259c3cd9b4bc3"
 ALGOLIA_INDEX_NAME = "notices"
 
-FETCH_RETRIES = 3
-FETCH_RETRY_DELAY = 5  # seconds between retries
+FETCH_RETRIES = 2
+FETCH_RETRY_DELAY = 3  # seconds between retries
 
 PRIORITY_TAGS = {"result", "datesheet", "exam", "examination", "merit", "counselling"}
 
@@ -101,7 +102,7 @@ def fetch_notices() -> list:
     last_exc = None
     for attempt in range(1, FETCH_RETRIES + 1):
         try:
-            resp = requests.get(NOTICES_URL, headers=HEADERS, timeout=30)
+            resp = requests.get(NOTICES_URL, headers=HEADERS, timeout=10)
             resp.raise_for_status()
             soup = BeautifulSoup(resp.text, "html.parser")
             if not soup.tbody:
@@ -226,7 +227,14 @@ def _update_health(fs_client, notices_fetched: int, new_count: int):
 
 # ── Scheduled Cloud Function ──────────────────────────────────────────────────
 
-@scheduler_fn.on_schedule(schedule="every 1 minutes", timezone="Asia/Kolkata")
+@scheduler_fn.on_schedule(
+    schedule="every 15 minutes",
+    timezone="Asia/Kolkata",
+    memory=MemoryOption.MB_256,
+    cpu=0.167,          # min CPU for 256 MiB; work is I/O-bound (waiting on a slow site)
+    concurrency=1,      # required when cpu < 1
+    timeout_sec=30,     # hard cap; HTTP fetch is bounded to ~23s worst case
+)
 def scrape_ipu_notices(event: scheduler_fn.ScheduledEvent) -> None:
     log.info("Scraper started")
 
@@ -244,20 +252,22 @@ def scrape_ipu_notices(event: scheduler_fn.ScheduledEvent) -> None:
     log.info(f"Fetched {len(notices)} notices")
 
     fs = firestore.client()
-    current_urls = {n["url"] for n in notices}
 
-    # 2. Sync archived status for notices that dropped off the page
-    try:
-        _sync_archived_status(fs, current_urls)
-    except Exception as e:
-        log.error(f"Archive sync error: {e}")
-
-    # 3. Quick exit if nothing new
+    # 2. Quick exit if the most recent notice is already stored — the common case.
+    #    Runs before the Firestore-wide archive query so no-change runs (the vast
+    #    majority) stay cheap: just the fetch + a single document read.
     if _top_notice_exists(fs, notices[0]):
         log.info("No change detected")
         return
 
     log.info("New notices detected — saving to Firestore")
+    current_urls = {n["url"] for n in notices}
+
+    # 3. Sync archived status for notices that dropped off the page
+    try:
+        _sync_archived_status(fs, current_urls)
+    except Exception as e:
+        log.error(f"Archive sync error: {e}")
 
     # 4. Save new notices (Firestore deduplicates by URL-derived doc ID)
     try:
