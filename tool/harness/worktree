@@ -1,0 +1,126 @@
+#!/usr/bin/env node
+// ggsipu_notice's managed-worktree CLI.
+//
+//   tool/harness/worktree create <task-id> <worker> [--base <ref>] [--dry-run]
+//   tool/harness/worktree list
+//   tool/harness/worktree status
+//   tool/harness/worktree doctor
+//   tool/harness/worktree release <path> [--dry-run]
+//   tool/harness/worktree locks [<resource>]
+//
+// Thin shim: all the lifecycle logic (dual-ownership registry, classification, the
+// legacy firewall, release eligibility) is the shared runtime's worktree.mjs. What is
+// repo-specific and supplied here is only the lock-resource list. Unlike a repo with no
+// codegen and no release path, all four of the runtime's default resources are genuinely
+// real here: `dart run build_runner` rewrites lib/models/notice.g.dart (codegen),
+// `flutter pub get` rewrites pubspec.lock and .dart_tool/ (dependency-resolution),
+// `dart format` rewrites source across lib/ and test/ (repo-format), and
+// `firebase deploy` / store uploads are one-at-a-time (release). See LOCK_RESOURCES in
+// lib/classify.mjs and `lock_resources:` in .claude/docs/routing.yaml.
+//
+// A managed worktree does NOT get the gitignored local config (lib/keys.dart,
+// lib/firebase_options.dart, android/app/google-services.json) — git does not copy
+// ignored files. Copy them in, or `verify`'s local_config check will fail there.
+//
+// This command never deletes a worktree that is not releasable per the runtime's own
+// rules, and never steals a lock from a live holder.
+
+import { execFileSync } from "node:child_process";
+import { existsSync } from "node:fs";
+import { homedir } from "node:os";
+import { dirname, join } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+
+const here = dirname(fileURLToPath(import.meta.url));
+const RUNTIME_LIB = process.env.CLAUDE_HARNESS_RUNTIME || join(homedir(), ".claude", "harness", "runtime", "lib");
+
+async function runtime(name) {
+  const path = join(RUNTIME_LIB, name);
+  if (!existsSync(path)) die(`harness runtime module not found: ${path}\nSet CLAUDE_HARNESS_RUNTIME or reinstall the harness.`);
+  return import(pathToFileURL(path).href);
+}
+
+function die(msg, code = 2) {
+  process.stderr.write(`tool/harness/worktree: ${msg}\n`);
+  process.exit(code);
+}
+
+function out(v) {
+  process.stdout.write(`${typeof v === "string" ? v : JSON.stringify(v, null, 2)}\n`);
+}
+
+async function main() {
+  const argv = process.argv.slice(2);
+  const cmd = argv[0];
+  const dryRun = argv.includes("--dry-run");
+
+  const { resolveWorktreeRoot } = await runtime("reporoot.mjs");
+  const wt = await runtime("worktree.mjs");
+  const { LOCK_RESOURCES } = await import(pathToFileURL(join(here, "lib", "classify.mjs")).href);
+
+  const rooted = resolveWorktreeRoot({ cwd: process.cwd() });
+  if (!rooted.ok) die(rooted.reason);
+  const cwd = rooted.root;
+
+  switch (cmd) {
+    case "create": {
+      const taskId = argv[1];
+      const worker = argv[2];
+      if (!taskId || !worker || taskId.startsWith("-") || worker.startsWith("-")) die("usage: tool/harness/worktree create <task-id> <worker> [--base <ref>] [--dry-run]");
+      const baseIdx = argv.indexOf("--base");
+      const baseRefArg = baseIdx === -1 ? undefined : argv[baseIdx + 1];
+      const r = wt.createWorktree({ cwd, taskId, worker, baseRefArg, assignedWorker: worker, dryRun });
+      out(r);
+      process.exit(r.ok === false ? 1 : 0);
+      return;
+    }
+    case "list":
+      out(wt.listWorktrees({ cwd }));
+      return;
+    case "status":
+      out(wt.statusWorktree({ cwd }));
+      return;
+    case "doctor": {
+      const r = wt.doctor({ cwd });
+      out(r);
+      process.exit(r.ok === false ? 1 : 0);
+      return;
+    }
+    case "release": {
+      const path = argv[1];
+      if (!path || path.startsWith("-")) die("usage: tool/harness/worktree release <path> [--dry-run]");
+      const r = wt.releaseWorktree({ repoCwd: cwd, path, dryRun, lockResources: LOCK_RESOURCES });
+      out(r);
+      process.exit(r.ok === false ? 1 : 0);
+      return;
+    }
+    case "locks": {
+      const locks = await runtime("locks.mjs");
+      const commonDir = execFileSync("git", ["rev-parse", "--git-common-dir"], { cwd, encoding: "utf8" }).trim();
+      const resource = argv[1];
+      if (resource) {
+        if (!LOCK_RESOURCES.includes(resource)) die(`unknown resource "${resource}" — this repo's resources are: ${LOCK_RESOURCES.join(", ")}`);
+        out(locks.inspect({ cwd, commonDir, resource, resources: LOCK_RESOURCES }));
+      } else {
+        out(LOCK_RESOURCES.map((r) => ({ resource: r, ...locks.inspect({ cwd, commonDir, resource: r, resources: LOCK_RESOURCES }) })));
+      }
+      return;
+    }
+    default:
+      process.stdout.write(
+        "usage:\n" +
+          "  tool/harness/worktree create <task-id> <worker> [--base <ref>] [--dry-run]\n" +
+          "  tool/harness/worktree list\n" +
+          "  tool/harness/worktree status\n" +
+          "  tool/harness/worktree doctor\n" +
+          "  tool/harness/worktree release <path> [--dry-run]\n" +
+          `  tool/harness/worktree locks [${LOCK_RESOURCES.join("|")}]\n`,
+      );
+      process.exit(cmd === undefined || cmd === "-h" || cmd === "--help" ? 0 : 2);
+  }
+}
+
+main().catch((e) => {
+  process.stderr.write(`tool/harness/worktree: ${e?.stack ?? e}\n`);
+  process.exit(2);
+});

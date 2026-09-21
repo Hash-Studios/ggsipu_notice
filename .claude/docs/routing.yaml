@@ -1,0 +1,186 @@
+# ggsipu_notice — verification routing policy.
+#
+# The human-readable half of this repo's policy. tool/harness/lib/classify.mjs is the
+# executable half and tool/harness/lib/reviewpolicy.mjs is the executable half of the
+# `review:` block below. Node ships no YAML parser and this repo has no YAML dependency,
+# so nothing here is parsed at runtime.
+#
+# LOCKSTEP: change this file and the matching .mjs together. Both are listed in
+# POLICY_FILES, so editing either changes the verification policy fingerprint and
+# invalidates every existing verify.json — which makes drift loud instead of silent.
+
+schema_version: 1
+repo: ggsipu_notice
+
+# ---------------------------------------------------------------------------------------
+# Tiers — what each one actually runs. See docs/agents/verification.md.
+# ---------------------------------------------------------------------------------------
+tiers:
+  fast:
+    intent: the working loop; everything here is seconds, not minutes
+    checks: [local_config, secrets, format, analyze]
+  normal:
+    intent: fast, plus the things that need the Dart toolchain to do real work
+    checks: [local_config, secrets, format, analyze, codegen, test, py_syntax]
+  full:
+    intent: normal, plus the native Android build — the only check that exercises
+      android/ at all
+    checks: [local_config, secrets, format, analyze, codegen, test, py_syntax, build_android]
+
+# ---------------------------------------------------------------------------------------
+# Classification — changed file -> the lowest tier that is honest for it.
+# First match wins, in order. Mirrors RULES in tool/harness/lib/classify.mjs.
+# ---------------------------------------------------------------------------------------
+classification:
+  - match: "server-new/functions/main.py"
+    tier: full
+    why: >-
+      the scheduled Cloud Function that scrapes, writes Firestore, mirrors to Algolia and
+      sends FCM messages to every installed device. A push notification cannot be un-sent;
+      a dedupe or diff bug here notifies everyone, repeatedly.
+  - match: "server-new/functions/**"
+    tier: full
+    why: the rest of the deployed backend, including the Algolia backfill — same blast radius
+  - match: "server-new/**"
+    tier: full
+    why: >-
+      deploy target and extension configuration (firebase.json, .firebaserc,
+      extensions/firestore-algolia-search.env) — these decide what `firebase deploy` does
+  - match: "lib/main.dart"
+    tier: full
+    why: >-
+      app bootstrap — Firebase init, the vm:entry-point FCM background handler, OneSignal
+      init, and the write of every device's FCM token into Firestore. Break it and
+      notifications break for all users.
+  - match: "pubspec.yaml"
+    tier: full
+    why: a new dependency ships inside a published mobile app
+  - match: "pubspec.lock"
+    tier: full
+    why: the resolved dependency graph the shipped build is reproducible against
+  - match: ".gitignore"
+    tier: full
+    why: >-
+      the only thing keeping lib/keys.dart, android/app/google-services.json and key.jks
+      out of git history, where a credential leak is effectively permanent
+  - match: "android/**"
+    tier: full
+    why: native build configuration and release signing for the published app
+  - match: "ios/**"
+    tier: full
+    why: native build configuration for the published app
+  - match: "lib/models/**"
+    tier: normal
+    why: >-
+      the shape parsed from live production Firestore documents, and the json_serializable
+      source the tracked notice.g.dart must stay in sync with
+  - match: "lib/services/**"
+    tier: normal
+    why: Firestore and Algolia access, theming and the GetIt registrations everything else resolves through
+  - match: "lib/notifiers/**"
+    tier: normal
+    why: the app's ChangeNotifier state, and the bridge between services/ and the UI
+  - match: "server/**"
+    tier: normal
+    why: >-
+      the legacy Heroku scraper. Superseded by server-new/ and not currently deployed, so
+      it is not `full` — but it is still real, tracked, runnable code
+  - match: "analysis_options.yaml"
+    tier: normal
+    why: defines what `flutter analyze` actually checks
+  - match: "tool/harness/**"
+    tier: normal
+    why: verifier, gate and policy logic — also policy files
+  - match: ".claude/docs/routing.yaml"
+    tier: normal
+    why: this file — the verification policy itself
+  - match: "AGENTS.md"
+    tier: normal
+    why: the rules agents work from
+  - match: "lib/pages/**"
+    tier: fast
+    why: one page; presentation over already-fetched notices, covered by analyze
+  - match: "lib/widgets/**"
+    tier: fast
+    why: presentation only, covered by analyze
+  - match: "test/**"
+    tier: fast
+    why: tests themselves
+  - match: "web/**"
+    tier: fast
+    why: created by `flutter create`; nothing ships from it
+  - match: "windows/**"
+    tier: fast
+    why: created by `flutter create`; nothing ships from it
+  - match: "assets/**"
+    tier: fast
+    why: bundled images
+  - match: "icon/**"
+    tier: fast
+    why: launcher icon sources
+  - match: "demo/**"
+    tier: fast
+    why: README screenshots
+  - match: "docs/**"
+    tier: fast
+    why: documentation
+  - match: "README.md"
+    tier: fast
+    why: documentation
+  - match: ".claude/tasks/**"
+    tier: fast
+    why: task bookkeeping — excluded from fingerprints entirely
+  - match: "*"
+    tier: fast
+    why: default floor — nothing is verification-exempt
+
+# ---------------------------------------------------------------------------------------
+# Independent review — required only where a mistake escapes this checkout.
+# Mirrors IRREVERSIBLE_PATH_PATTERNS in tool/harness/lib/reviewpolicy.mjs.
+# Everything not listed needs no review. Review is OPTIONAL in this repo and most changes
+# require none.
+# ---------------------------------------------------------------------------------------
+review:
+  default: none
+  paths:
+    - match: "server-new/functions/main.py"
+      mode: standard
+      why: sends FCM pushes to every installed device; a push cannot be un-sent
+    - match: "lib/main.dart"
+      mode: standard
+      why: FCM/OneSignal setup and the fcm_tokens write that every device depends on
+    - match: ".gitignore"
+      mode: standard
+      why: >-
+        guards lib/keys.dart, android/app/google-services.json and key.jks. The `secrets`
+        verifier check catches a secret already present in the tree on every tier, which is
+        stronger — but only review catches a rule removed ahead of the file arriving.
+    - match: "android/app/build.gradle"
+      mode: standard
+      why: release signing configuration for the published app
+    - match: "pubspec.yaml"
+      mode: standard
+      why: a new dependency is third-party code shipped inside a published mobile app
+
+# ---------------------------------------------------------------------------------------
+# Shared resources a worker may serialize on. All four of the runtime's default resources
+# are genuinely real in this repo. Mirrors LOCK_RESOURCES in classify.mjs.
+# ---------------------------------------------------------------------------------------
+lock_resources:
+  - name: codegen
+    why: "`dart run build_runner build` rewrites lib/models/notice.g.dart in the shared tree"
+  - name: dependency-resolution
+    why: "`flutter pub get` rewrites pubspec.lock and .dart_tool/"
+  - name: repo-format
+    why: "`dart format` rewrites source files across lib/ and test/"
+  - name: release
+    why: "`firebase deploy` and store uploads — one at a time, and never by an agent alone"
+
+# ---------------------------------------------------------------------------------------
+# Escalation classes this repo deliberately does NOT have, so nobody adds them by analogy:
+#   - no web/desktop release path (web/ and windows/ ship nothing)
+#   - no golden-image or screenshot tests
+#   - no Python lint/format/type gate: ruff, black, mypy and pytest are not installed and
+#     not declared anywhere in this repo. `py_syntax` parses the Python sources and claims
+#     nothing more than that.
+# ---------------------------------------------------------------------------------------

@@ -1,0 +1,518 @@
+#!/usr/bin/env node
+// ggsipu_notice's deterministic verifier.
+//
+// Thin shim: all generic machinery (diffing, fingerprints, root resolution) comes from
+// the shared harness runtime at ~/.claude/harness/runtime/lib/. Everything repo-specific
+// — which commands exist, which tier runs which — lives here and in lib/classify.mjs.
+//
+// Contract (docs/agents/verification.md):
+//   tool/harness/verify <fast|normal|full> [--base <ref>] [--files a b ...]
+//                                          [--json-out <path>] [--quiet]
+//
+// Exit 0 only when result === "passed". Exit 1 otherwise (failed or incomplete).
+//
+// THE RULE: a check is reported "passed" only if it actually ran and actually succeeded
+// (exit zero for a spawned command; the predicate actually evaluated for an internal
+// one). A required check that could not run is "skipped" AND is listed in
+// unsatisfied_required, which makes the whole run "incomplete" — never "passed". There
+// is no code path here that writes a pass for something it did not execute. Do not add
+// one.
+
+import { spawnSync, execFileSync } from "node:child_process";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { dirname, join } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+
+const SCHEMA_VERSION = 3;
+
+const RUNTIME_LIB = process.env.CLAUDE_HARNESS_RUNTIME || join(homedir(), ".claude", "harness", "runtime", "lib");
+
+async function loadRuntime(name) {
+  const path = join(RUNTIME_LIB, name);
+  if (!existsSync(path)) {
+    process.stderr.write(
+      `tool/harness/verify: harness runtime module not found: ${path}\n` +
+        `The shared runtime (~/.claude/harness/runtime/) is missing or moved. Set\n` +
+        `CLAUDE_HARNESS_RUNTIME to its lib/ directory, or reinstall the harness.\n`,
+    );
+    process.exit(2);
+  }
+  return import(pathToFileURL(path).href);
+}
+
+function parseArgs(argv) {
+  const out = { tier: null, base: undefined, files: undefined, jsonOut: null, quiet: false };
+  const rest = [...argv];
+  while (rest.length > 0) {
+    const a = rest.shift();
+    if (a === "--base") out.base = rest.shift();
+    else if (a === "--json-out") out.jsonOut = rest.shift();
+    else if (a === "--quiet") out.quiet = true;
+    else if (a === "--files") {
+      out.files = [];
+      while (rest.length > 0 && !rest[0].startsWith("--")) out.files.push(rest.shift());
+    } else if (a === "-h" || a === "--help") {
+      process.stdout.write("usage: tool/harness/verify <fast|normal|full> [--base <ref>] [--files <p>...] [--json-out <path>] [--quiet]\n");
+      process.exit(0);
+    } else if (a.startsWith("-")) {
+      process.stderr.write(`tool/harness/verify: unknown flag ${a}\n`);
+      process.exit(2);
+    } else if (out.tier === null) out.tier = a;
+    else {
+      process.stderr.write(`tool/harness/verify: unexpected argument ${a}\n`);
+      process.exit(2);
+    }
+  }
+  return out;
+}
+
+// --- The repo's actual commands ------------------------------------------------------
+// Every spawned entry names a real command in this repo's toolchain (AGENTS.md records
+// where each came from: pubspec.yaml, analysis_options.yaml, server-new/firebase.json).
+// There is no CI file and no Makefile in this repo, so this verifier is the only
+// definition of "passing" it has.
+//
+// `available(ctx)` returns null when the check can run, or a human reason string when it
+// genuinely cannot — that reason is what lands in unsatisfied_required.
+
+// Local config this repo deliberately gitignores. Absent from a fresh clone, and the app
+// does not analyze, test or build without them. Listed with what each one is for so a
+// failure explains itself.
+const LOCAL_CONFIG = [
+  { path: "lib/keys.dart", why: "oneSignalAppID, algoliaApplicationId, algoliaApiKey — imported by lib/main.dart and lib/services/algolia_service.dart" },
+  { path: "lib/firebase_options.dart", why: "FlutterFire configuration — generate with `flutterfire configure`" },
+];
+
+// Secrets .gitignore excludes. A leak into git history is effectively permanent, so this
+// is checked on every tier rather than left to review.
+const SECRET_PATHS = [
+  "lib/keys.dart",
+  "lib/firebase_options.dart",
+  "android/app/google-services.json",
+  "key.jks",
+  "keys.py",
+  "config.py",
+  "server/ggsipu-notice-firebase-adminsdk-4c8gx-3fb2a73c7b.json",
+];
+
+// Python sources that are actually ours. venv/ and __pycache__/ are excluded: they are
+// third-party bytes and build output, and server-new/firebase.json already ignores them
+// at deploy time.
+const PY_SOURCES = ["server/scraper.py", "server-new/functions/main.py", "server-new/functions/backfill_algolia.py"];
+
+function which(bin) {
+  const r = spawnSync("command", ["-v", bin], { encoding: "utf8", shell: true });
+  return r.status === 0 && (r.stdout ?? "").trim() !== "" ? (r.stdout ?? "").trim().split("\n")[0] : null;
+}
+
+function flutterAvailable() {
+  return which("flutter") ? null : "the `flutter` command is not on PATH — install Flutter (this repo needs >=3.4.0 per pubspec.yaml's sdk constraint)";
+}
+
+function dartAvailable() {
+  return which("dart") ? null : "the `dart` command is not on PATH";
+}
+
+function packagesResolved(cwd) {
+  if (!existsSync(join(cwd, ".dart_tool", "package_config.json"))) {
+    return "dependencies are not resolved — run `flutter pub get` (.dart_tool/package_config.json is missing)";
+  }
+  return null;
+}
+
+/** The Python this repo's Cloud Functions actually target (server-new/firebase.json says
+ *  "runtime": "python311"). Prefer the checked-in venv's 3.11 over whatever `python3` is,
+ *  so a syntax check reflects the deployed interpreter. */
+function pythonInterpreter(cwd) {
+  const venv = join(cwd, "server-new", "functions", "venv", "bin", "python3.11");
+  if (existsSync(venv)) return { bin: venv, label: "server-new/functions/venv/bin/python3.11 (matches firebase.json's python311 runtime)" };
+  const sys = which("python3");
+  if (sys) return { bin: sys, label: `${sys} (system python3 — NOT the python311 runtime the functions deploy to)` };
+  return null;
+}
+
+function git(cwd, args) {
+  return execFileSync("git", args, { cwd, encoding: "utf8", maxBuffer: 32 * 1024 * 1024, stdio: ["ignore", "pipe", "pipe"] });
+}
+
+// --- Internal checks -----------------------------------------------------------------
+// Three of this repo's real risks are not expressible as a command from its toolchain, so
+// they are predicates instead. All three are deterministic and explain themselves.
+
+/**
+ * `lib/keys.dart` and `lib/firebase_options.dart` are gitignored on purpose (they carry
+ * the OneSignal app id, the Algolia credentials and the Firebase config) and are simply
+ * absent from a fresh clone. Without them `flutter analyze` and `flutter test` fail with
+ * `uri_does_not_exist`, which reads like a code error and is not one. This check names
+ * the real cause first, on every tier, so nobody debugs the wrong thing.
+ */
+function checkLocalConfig({ cwd }) {
+  const missing = LOCAL_CONFIG.filter((f) => !existsSync(join(cwd, f.path)));
+  if (missing.length === 0) {
+    return { ok: true, detail: `${LOCAL_CONFIG.map((f) => f.path).join(", ")} are present` };
+  }
+  return {
+    ok: false,
+    detail:
+      `these gitignored local-config files are missing:\n` +
+      missing.map((f) => `  ${f.path} — ${f.why}`).join("\n") +
+      `\n\nThey are excluded by .gitignore ON PURPOSE and must stay that way; supply them\n` +
+      `locally. Until then \`flutter analyze\` and \`flutter test\` will report\n` +
+      `uri_does_not_exist / undefined_identifier against lib/main.dart and\n` +
+      `lib/services/algolia_service.dart, and those failures are this, not a code defect.`,
+  };
+}
+
+/**
+ * The credential files .gitignore excludes must be neither tracked by git nor sitting in
+ * the working tree unignored. Git history is the one place a leak here is permanent, and
+ * one `git add -A` is all it takes.
+ */
+function checkSecrets({ cwd }) {
+  let tracked = [];
+  try {
+    tracked = git(cwd, ["ls-files", "--", ...SECRET_PATHS, "*.jks", "*.keystore"]).split("\n").filter(Boolean);
+  } catch (e) {
+    return { ok: false, detail: `could not ask git which credential files are tracked: ${String(e.message ?? e)}` };
+  }
+  if (tracked.length > 0) {
+    return {
+      ok: false,
+      detail:
+        `these credential files are TRACKED by git:\n${tracked.map((t) => `  ${t}`).join("\n")}\n` +
+        `They carry Firebase / Algolia / OneSignal credentials or the release signing key.\n` +
+        `Untrack them (git rm --cached <file>) and keep .gitignore's rules for them intact.`,
+    };
+  }
+  // --exclude-standard is load-bearing: without it, `ls-files --others` lists IGNORED
+  // files too, so every correctly-gitignored key file would be reported as a leak.
+  let present = [];
+  try {
+    present = git(cwd, ["ls-files", "--others", "--exclude-standard", "--", ...SECRET_PATHS, "*.jks", "*.keystore"]).split("\n").filter(Boolean);
+  } catch {
+    present = [];
+  }
+  if (present.length > 0) {
+    return {
+      ok: false,
+      detail:
+        `these credential files are untracked but NOT ignored:\n${present.map((p) => `  ${p}`).join("\n")}\n` +
+        `One \`git add -A\` would commit them. Restore the matching .gitignore rule.`,
+    };
+  }
+  return { ok: true, detail: "no credential file is tracked, and none is present unignored" };
+}
+
+/**
+ * `lib/models/notice.g.dart` is json_serializable's output and is tracked in git. If
+ * `notice.dart` changed and the committed `.g.dart` was not regenerated, the app parses
+ * live Firestore documents with a stale schema. Regenerates and asserts nothing moved.
+ *
+ * This check WRITES: it runs build_runner, which rewrites generated files in the tree.
+ * That is why it is in `normal`/`full` and not in the `fast` working loop, and why
+ * `codegen` is one of this repo's lock resources.
+ */
+function checkCodegen({ cwd }) {
+  const before = (() => {
+    try {
+      return git(cwd, ["status", "--porcelain=v1", "--", "*.g.dart"]);
+    } catch (e) {
+      return `<unavailable: ${String(e.message ?? e)}>`;
+    }
+  })();
+
+  const r = spawnSync("dart", ["run", "build_runner", "build", "--delete-conflicting-outputs"], {
+    cwd,
+    encoding: "utf8",
+    timeout: CHECK_TIMEOUT_MS,
+    maxBuffer: 64 * 1024 * 1024,
+  });
+  if (r.error || r.signal) {
+    // Did not evaluate. Surfaced as a throw so runCheck records it as "skipped", not a
+    // pass and not a failure — see runCheck's internal branch.
+    throw new Error(`build_runner did not run: ${r.error?.message ?? `killed by ${r.signal}`}`);
+  }
+  if (r.status !== 0) {
+    return { ok: false, detail: `\`dart run build_runner build --delete-conflicting-outputs\` exited ${r.status}:\n${`${r.stdout ?? ""}${r.stderr ?? ""}`.trimEnd()}` };
+  }
+
+  let after;
+  try {
+    after = git(cwd, ["status", "--porcelain=v1", "--", "*.g.dart"]);
+  } catch (e) {
+    return { ok: false, detail: `build_runner succeeded but git could not report generated-file status: ${String(e.message ?? e)}` };
+  }
+  if (after !== before) {
+    return {
+      ok: false,
+      detail:
+        `regenerating changed the committed output — the tracked *.g.dart files are stale.\n` +
+        `git status for *.g.dart before:\n${before || "  (clean)"}\nafter:\n${after || "  (clean)"}\n` +
+        `Run \`dart run build_runner build --delete-conflicting-outputs\` and commit the result.`,
+    };
+  }
+  return { ok: true, detail: "build_runner produced no change to the tracked *.g.dart files" };
+}
+
+/**
+ * A real syntax check over this repo's own Python, using the interpreter the functions
+ * actually deploy to where one is available. `ast.parse` rather than `py_compile` so the
+ * check writes no bytecode into the tree.
+ *
+ * This is the WHOLE of the Python checking this repo can honestly do: ruff, black, mypy
+ * and pytest are not installed and are declared nowhere (server/requirements.txt and
+ * server-new/functions/requirements.txt list neither). A check claiming more would be
+ * inventing a toolchain this repo does not have.
+ */
+function checkPySyntax({ cwd }) {
+  const interp = pythonInterpreter(cwd);
+  if (!interp) throw new Error("no python3 interpreter found"); // -> skipped, not a pass
+  const present = PY_SOURCES.filter((p) => existsSync(join(cwd, p)));
+  if (present.length === 0) return { ok: true, detail: "no Python sources present" };
+  const r = spawnSync(
+    interp.bin,
+    ["-c", "import ast,sys\nfor f in sys.argv[1:]:\n    ast.parse(open(f, encoding='utf-8').read(), filename=f)\n", ...present],
+    { cwd, encoding: "utf8", timeout: CHECK_TIMEOUT_MS, maxBuffer: 16 * 1024 * 1024 },
+  );
+  if (r.error || r.signal) throw new Error(`could not run ${interp.bin}: ${r.error?.message ?? `killed by ${r.signal}`}`);
+  if (r.status !== 0) return { ok: false, detail: `${`${r.stdout ?? ""}${r.stderr ?? ""}`.trimEnd()}\n\n(parsed with ${interp.label})` };
+  return { ok: true, detail: `parsed ${present.length} file(s) with ${interp.label}` };
+}
+
+const CHECKS = {
+  local_config: {
+    kind: "internal",
+    run: checkLocalConfig,
+    description: "gitignored lib/keys.dart and lib/firebase_options.dart are present",
+    required: true,
+    available: () => null,
+  },
+  secrets: {
+    kind: "internal",
+    run: checkSecrets,
+    description: "no credential file is tracked or present unignored",
+    required: true,
+    available: () => null,
+  },
+  format: {
+    kind: "spawn",
+    cmd: () => ["dart", ["format", "--output=none", "--set-exit-if-changed", "lib", "test"]],
+    description: "dart format --output=none --set-exit-if-changed lib test",
+    required: true,
+    available: () => dartAvailable(),
+  },
+  analyze: {
+    kind: "spawn",
+    cmd: () => ["flutter", ["analyze"]],
+    description: "flutter analyze (lints from analysis_options.yaml / flutter_lints ^4.0.0)",
+    required: true,
+    available: ({ cwd }) => flutterAvailable() ?? packagesResolved(cwd),
+  },
+  codegen: {
+    kind: "internal",
+    run: checkCodegen,
+    description: "the tracked lib/models/*.g.dart match their json_serializable sources",
+    required: true,
+    available: ({ cwd }) => dartAvailable() ?? packagesResolved(cwd),
+  },
+  test: {
+    // A real runner and a real test file exist, so this is required: true. It is also,
+    // today, guaranteed to fail — test/widget_test.dart is the unmodified `flutter
+    // create` counter template (it pumps MyApp and looks for a `+` icon and the text
+    // `0`), and this app is a CupertinoApp showing a notice list.
+    //
+    // That is recorded as a BASELINE FAILURE, not papered over: marking it required:
+    // false would quietly bless a suite that tests nothing, and the point of this check
+    // is that the gap stays visible in every artifact until the template test is
+    // replaced with tests of this app. See AGENTS.md, "The honest gap".
+    kind: "spawn",
+    cmd: () => ["flutter", ["test"]],
+    description: "flutter test",
+    required: true,
+    available: ({ cwd }) => flutterAvailable() ?? packagesResolved(cwd),
+  },
+  py_syntax: {
+    kind: "internal",
+    run: checkPySyntax,
+    description: "server/ and server-new/functions/ Python parses (no linter exists in this repo)",
+    required: true,
+    available: ({ cwd }) => (pythonInterpreter(cwd) ? null : "no python3 interpreter is on PATH and server-new/functions/venv is absent"),
+  },
+  build_android: {
+    // The only check that exercises android/ at all. Needs the gitignored
+    // google-services.json, which is a genuine, satisfiable precondition for the owner —
+    // not an unpassable gate. When it is absent this reports "skipped" and, being
+    // required, makes the full tier "incomplete": honest about what was not proven.
+    kind: "spawn",
+    cmd: () => ["flutter", ["build", "apk", "--debug"]],
+    description: "flutter build apk --debug",
+    required: true,
+    available: ({ cwd }) => {
+      const base = flutterAvailable() ?? packagesResolved(cwd);
+      if (base) return base;
+      if (!existsSync(join(cwd, "android", "app", "google-services.json"))) {
+        return "android/app/google-services.json is missing (gitignored) — the Android build cannot be configured without it";
+      }
+      return null;
+    },
+  },
+};
+
+// Per docs/agents/verification.md's tier table, and routing.yaml's `tiers:` block.
+const TIER_CHECKS = {
+  // local_config and secrets are in `fast` deliberately. Both cost milliseconds.
+  // local_config is what turns a confusing wall of uri_does_not_exist errors into one
+  // sentence, and secrets guards an irreversible leak — a millisecond guard on a
+  // permanent risk belongs in every tier, including the one the working loop reruns.
+  fast: ["local_config", "secrets", "format", "analyze"],
+  normal: ["local_config", "secrets", "format", "analyze", "codegen", "test", "py_syntax"],
+  full: ["local_config", "secrets", "format", "analyze", "codegen", "test", "py_syntax", "build_android"],
+};
+
+// Stated in every artifact, not just the docs: a green run here is not behavioural
+// coverage. See docs/agents/verification.md, "The honest gap".
+const COVERAGE_NOTE =
+  "test/ contains one file and it is the unmodified `flutter create` counter template, " +
+  "which does not match this app. This repository therefore has NO behavioural test " +
+  "coverage. A passing result means the code analyzes clean, is formatted, its generated " +
+  "*.g.dart match their sources, its Python parses, no credential file is tracked, and " +
+  "(at full) an Android debug APK builds. It does NOT mean any app behaviour is correct.";
+
+const CHECK_TIMEOUT_MS = 15 * 60 * 1000;
+
+function truncate(s, n = 4000) {
+  const t = (s ?? "").trimEnd();
+  return t.length <= n ? t : `${t.slice(0, n)}\n...[truncated ${t.length - n} chars]`;
+}
+
+function runCheck(name, ctx, quiet) {
+  const spec = CHECKS[name];
+  const base = { name, description: spec.description, required: spec.required };
+  const unavailable = spec.available(ctx);
+  if (unavailable) {
+    if (!quiet) process.stdout.write(`  SKIP  ${name}  (${unavailable})\n`);
+    return { ...base, status: "skipped", exit_code: null, duration_ms: 0, detail: unavailable };
+  }
+
+  const startedAt = Date.now();
+
+  if (spec.kind === "internal") {
+    let r;
+    try {
+      r = spec.run(ctx);
+    } catch (e) {
+      // A predicate that threw did not evaluate — that is "could not run", not a pass.
+      const duration = Date.now() - startedAt;
+      const detail = `could not run: ${String(e?.stack ?? e)}`;
+      if (!quiet) process.stdout.write(`  SKIP  ${name}  (${detail.split("\n")[0]})\n`);
+      return { ...base, status: "skipped", exit_code: null, duration_ms: duration, detail };
+    }
+    const duration = Date.now() - startedAt;
+    const status = r.ok ? "passed" : "failed";
+    if (!quiet) process.stdout.write(`  ${r.ok ? "PASS" : "FAIL"}  ${name}  (${spec.description}, ${duration}ms)\n`);
+    return { ...base, status, exit_code: r.ok ? 0 : 1, duration_ms: duration, detail: r.ok ? r.detail ?? "" : truncate(r.detail ?? "") };
+  }
+
+  const [bin, args] = spec.cmd(ctx.cwd);
+  const r = spawnSync(bin, args, { cwd: ctx.cwd, encoding: "utf8", timeout: CHECK_TIMEOUT_MS, maxBuffer: 64 * 1024 * 1024 });
+  const duration = Date.now() - startedAt;
+  const output = `${r.stdout ?? ""}${r.stderr ?? ""}`;
+
+  // Spawn failure or timeout is "could not run", not "failed" — an honest distinction:
+  // it is not evidence the code is wrong, and it must not be reported as a pass either.
+  if (r.error || r.signal) {
+    const reason = r.error?.code === "ETIMEDOUT" || r.signal === "SIGTERM" ? `timed out after ${CHECK_TIMEOUT_MS}ms` : `could not run: ${r.error?.message ?? `killed by ${r.signal}`}`;
+    if (!quiet) process.stdout.write(`  SKIP  ${name}  (${reason})\n`);
+    return { ...base, status: "skipped", exit_code: null, duration_ms: duration, detail: reason };
+  }
+  const status = r.status === 0 ? "passed" : "failed";
+  if (!quiet) process.stdout.write(`  ${status === "passed" ? "PASS" : "FAIL"}  ${name}  (${spec.description}, ${duration}ms)\n`);
+  return { ...base, status, exit_code: r.status, duration_ms: duration, detail: status === "passed" ? "" : truncate(output) };
+}
+
+async function main() {
+  const opts = parseArgs(process.argv.slice(2));
+  if (!TIER_CHECKS[opts.tier]) {
+    process.stderr.write(`tool/harness/verify: tier must be one of fast, normal, full (got ${opts.tier === null ? "nothing" : `"${opts.tier}"`})\n`);
+    process.exit(2);
+  }
+
+  const { resolveWorktreeRoot } = await loadRuntime("reporoot.mjs");
+  const { computeDiff, computeHead } = await loadRuntime("diff.mjs");
+  const { workspaceFingerprint, policyFingerprint } = await loadRuntime("fingerprint.mjs");
+  const { classifyChanges, POLICY_FILES, FINGERPRINT_EXCLUDE_PREFIXES } = await import(pathToFileURL(join(dirname(fileURLToPath(import.meta.url)), "lib", "classify.mjs")).href);
+
+  const rooted = resolveWorktreeRoot({ cwd: process.cwd() });
+  if (!rooted.ok) {
+    process.stderr.write(`tool/harness/verify: ${rooted.reason}\n`);
+    process.exit(2);
+  }
+  const cwd = rooted.root;
+
+  // computeDiff returns entries ({path, status, oldPath?}), not bare paths: the
+  // fingerprint needs the entries, the classifier and the internal checks need the paths.
+  const diff = computeDiff({ cwd, baseRefArg: opts.base, filesOverride: opts.files });
+  const changedEntries = diff.changedFiles ?? [];
+  const changedPaths = changedEntries.map((e) => e.path);
+  const { requiredTier, reasons } = classifyChanges(changedPaths);
+
+  const scope = opts.files ? { mode: "files", base: opts.base ?? null, files: opts.files } : opts.base ? { mode: "base", base: opts.base, files: null } : { mode: "default", base: null, files: null };
+
+  if (!opts.quiet) {
+    process.stdout.write(`verify ${opts.tier} — ${changedEntries.length} changed file(s), classifier requires "${requiredTier}"\n`);
+    if (reasons.length > 0 && requiredTier !== "fast") {
+      for (const r of reasons.slice(0, 5)) process.stdout.write(`  ${requiredTier} because ${r.path}: ${r.why}\n`);
+    }
+  }
+
+  const ctx = { cwd, changedPaths, changedEntries, base: diff.base };
+  const checks = [];
+  for (const name of TIER_CHECKS[opts.tier]) checks.push(runCheck(name, ctx, opts.quiet));
+
+  const unsatisfiedRequired = checks.filter((c) => c.required && c.status === "skipped").map((c) => ({ check: c.name, reason: c.detail }));
+  const anyFailed = checks.some((c) => c.status === "failed");
+  const result = anyFailed ? "failed" : unsatisfiedRequired.length > 0 ? "incomplete" : "passed";
+
+  const artifact = {
+    schema_version: SCHEMA_VERSION,
+    tier: opts.tier,
+    result,
+    completion_tier_satisfied: result === "passed",
+    unsatisfied_required: unsatisfiedRequired,
+    required_tier: requiredTier,
+    coverage_note: COVERAGE_NOTE,
+    verification_policy_fingerprint: policyFingerprint({ cwd, policyFiles: POLICY_FILES }),
+    workspace_fingerprint: workspaceFingerprint({ cwd, changedFiles: changedEntries, excludePrefixes: FINGERPRINT_EXCLUDE_PREFIXES }),
+    verification_scope: scope,
+    base: diff.base,
+    verified_at_commit: computeHead({ cwd }),
+    changed_files: changedEntries,
+    checks,
+    generated_by: "tool/harness/verify",
+    generated_at: new Date().toISOString(),
+  };
+
+  if (opts.jsonOut) {
+    mkdirSync(dirname(opts.jsonOut), { recursive: true });
+    writeFileSync(opts.jsonOut, `${JSON.stringify(artifact, null, 2)}\n`);
+  }
+
+  if (!opts.quiet) {
+    process.stdout.write(`\nresult: ${result}  (tier ${opts.tier}, required ${requiredTier})\n`);
+    for (const u of unsatisfiedRequired) process.stdout.write(`  did not run: ${u.check} — ${u.reason}\n`);
+    for (const c of checks.filter((x) => x.status === "failed")) {
+      process.stdout.write(`\n--- ${c.name} failed (exit ${c.exit_code}) ---\n${c.detail}\n`);
+    }
+    if (opts.jsonOut) process.stdout.write(`\nartifact: ${opts.jsonOut}\n`);
+  } else {
+    process.stdout.write(`${JSON.stringify(artifact)}\n`);
+  }
+
+  process.exit(result === "passed" ? 0 : 1);
+}
+
+main().catch((e) => {
+  process.stderr.write(`tool/harness/verify: ${e?.stack ?? e}\n`);
+  process.exit(2);
+});
