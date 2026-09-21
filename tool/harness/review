@@ -32,7 +32,10 @@ const here = dirname(fileURLToPath(import.meta.url));
 const RUNTIME_LIB = process.env.CLAUDE_HARNESS_RUNTIME || join(homedir(), ".claude", "harness", "runtime", "lib");
 
 // Which reviewer model this repo pins. Change here and in docs/agents/verification.md.
-const REQUIRED_MODEL = process.env.GGSIPU_NOTICE_REVIEW_MODEL || "gpt-5.6-sol";
+// Pinned, with no environment override by design: Sol is the only reviewer, and the
+// model is verified after the fact from the Codex session rollout. An overridable
+// constant would let `reviewer.model` in review.json assert a model that never ran.
+const REQUIRED_MODEL = "gpt-5.6-sol";
 
 async function runtime(name) {
   const path = join(RUNTIME_LIB, name);
