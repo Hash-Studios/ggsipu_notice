@@ -1,37 +1,6 @@
-#!/usr/bin/env node
-// ggsipu_notice's completion gate CLI.
-//
-//   tool/harness/gate [--json]
-//
-// Exit 0 = allow (nothing is blocking completion), exit 1 = block, exit 2 = the gate
-// itself could not run. A gate that cannot run is NOT an allow: an unreadable state
-// file or a missing runtime blocks, because "I could not check" and "it is fine" are
-// different answers.
-//
-// The decision itself lives in lib/gatecheck.mjs (repo wiring) and the shared runtime's
-// gate.mjs `evaluateStop` (the pure rules). This file is only the CLI.
-
-import { dirname, join } from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
-
-const here = dirname(fileURLToPath(import.meta.url));
-
-async function main() {
-  const json = process.argv.slice(2).includes("--json");
-  const { evaluateGate } = await import(pathToFileURL(join(here, "lib", "gatecheck.mjs")).href);
-  const result = await evaluateGate({ cwd: process.cwd() });
-
-  if (json) {
-    process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
-  } else if (result.decision === "allow") {
-    process.stdout.write(`allow (${result.reason_code})\n`);
-  } else {
-    process.stdout.write(`block (${result.reason_code})\n${result.message ?? ""}\n`);
-  }
-  process.exit(result.decision === "allow" ? 0 : 1);
-}
-
-main().catch((e) => {
-  process.stderr.write(`tool/harness/gate: could not evaluate the gate: ${e?.stack ?? e}\n`);
-  process.exit(2);
-});
+#!/bin/sh
+# harness-stable-wrapper v1 — tool/harness/gate
+# Contains no harness logic and never changes for a core release: it hands this repo's root to
+# the global core, which reads .claude/harness/config.json (+ adapter.mjs) and does the work.
+root=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd -P)
+exec "${HARNESS_HOME:-$HOME/.claude/harness}/bin/harness" gate --repo "$root" "$@"

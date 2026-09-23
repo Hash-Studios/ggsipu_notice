@@ -1,10 +1,10 @@
 // ggsipu_notice's own file classifier: changed files -> required verification tier.
 //
-// Repo-specific by design. The generic harness runtime
-// (~/.claude/harness/runtime/lib) deliberately ships no classifier, because "what does
-// this change risk" is a question only a specific repo can answer. This one answers it
-// for a Flutter notice-board app whose Python Cloud Functions backend pushes FCM
-// notifications to every installed device.
+// Repo-specific by design. The shared harness core deliberately ships no classifier,
+// because "what does this change risk" is a question only a specific repo can answer.
+// This one answers it for a Flutter notice-board app whose Python Cloud Functions
+// backend pushes FCM notifications to every installed device. Wrapped by
+// .claude/harness/adapter.mjs's classifyChanges.
 //
 // LOCKSTEP: `.claude/docs/routing.yaml` is the human-readable statement of this same
 // policy and `RULES` below is its executable form. Node has no built-in YAML parser and
