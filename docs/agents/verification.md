@@ -136,7 +136,4 @@ claim. Fields the gate reads:
 ## Independent review
 
 Optional here, and required on only five paths (`.claude/docs/routing.yaml`, `review:`).
-`tool/harness/review run` pins `gpt-5.6-sol` via the Codex CLI; override with
-`GGSIPU_NOTICE_REVIEW_MODEL`. If the CLI is absent, unauthenticated, on the wrong model or
-fails mid-run, it writes an `incomplete` `review.json` carrying the reason and exits
-non-zero. There is no path from "review unavailable" to "review passed".
+`tool/harness/review run` drives it. Independent review is performed by the reviewer configured in the active global harness policy (`~/.claude/harness/current/policies/global.md`); this repo only sets risk floors.
